@@ -1,13 +1,29 @@
 # Lumina — Project Journal
 
-> **Last Updated:** May 4, 2026
-> **Current Phase:** Phase 1 Complete — Ready for Phase 2
+> **Last Updated:** May 12, 2026
+> **Current Phase:** Phase 2 — Local Xcode App Build Running, UX/Auth Refinement Next
 
 ---
 
 ## Project Overview
 
 Lumina is a cyber-premium iOS companion app for the **Lumina ESP32-S3 Smart Lamp**, built with SwiftUI. The app delivers a glassmorphic dark UI, RealityKit 3D lamp preview, HomeKit integration, and BLE connectivity, following a feature-rich mobile development workflow.
+
+---
+
+## Current Status — May 12, 2026
+
+The app has been migrated into the real Xcode project at `Source 2/Lumina/Lumina.xcodeproj` and can now run locally. The active app source of truth is `Source 2/Lumina/Lumina/`, not the older standalone Swift package path.
+
+### Build & Runtime Notes
+- [x] Default Xcode Core Data template files were removed from the app target.
+- [x] Lumina SwiftUI app structure was moved into the Xcode app target.
+- [x] Local generic iOS build succeeds with `xcodebuild`.
+- [x] HomeKit-related Swift warnings were cleaned up for the current SDK.
+- [ ] Console logs such as `XPC connection invalid` and `Message send exceeds rate-limit threshold` were observed during local runs. Treat these as runtime diagnostics to monitor during physical-device testing; investigate only if they correlate with broken UI, BLE, HomeKit, or navigation behavior.
+
+### Important Implementation Caveat
+`HomeKitManager.triggerNativePairingFlow()` is currently build-safe but not fully wired to the latest native HomeKit pairing flow. BLE onboarding can continue, but true HomeKit pairing still needs a dedicated implementation pass with the current iOS SDK APIs.
 
 ---
 
@@ -61,7 +77,7 @@ Lumina is a cyber-premium iOS companion app for the **Lumina ESP32-S3 Smart Lamp
 | `ConnectionBadge.swift` | ✅ | BLE connection state badge |
 | `GlowIcon.swift` | ✅ | SF Symbol with neon glow shadow |
 | `ControlCard.swift` | ✅ | Power toggle + brightness + color in glass card |
-| `LampPreview3D.swift` | ✅ | RealityKit 3D scene with dynamic PointLight |
+| `LampPreview3D.swift` | ✅ | SwiftUI lamp preview with dynamic glow state |
 
 #### 4. Core — Models
 | Model | Status | Notes |
@@ -73,7 +89,7 @@ Lumina is a cyber-premium iOS companion app for the **Lumina ESP32-S3 Smart Lamp
 | Service | Status | Notes |
 |---|---|---|
 | `BluetoothManager.swift` | ✅ | Full BLE Central: scan for `180A`, match "Lumina ESP32S3 Lamp", connect, command queue |
-| `HomeKitManager.swift` | ✅ | HMHomeManager + HMAccessorySetupManager for native pairing flow |
+| `HomeKitManager.swift` | ⚠️ | HMHomeManager accessory state helpers; native pairing flow needs current SDK implementation |
 | `HapticManager.swift` | ✅ | Light, medium, heavy impact + success/error notifications |
 
 #### 6. Core — Repositories
@@ -93,7 +109,7 @@ Lumina is a cyber-premium iOS companion app for the **Lumina ESP32-S3 Smart Lamp
 #### 9. Features — Dashboard
 - [x] `MainDashboardView.swift` — Header, connection status pill, 3D preview, control card, quick scenes
 - [x] `DashboardViewModel.swift` — Full state management, scene presets (Focus/Relax/Party/Off), BLE command dispatch
-- [x] `LampPreview3D.swift` — RealityKit scene: base, pole, shade, bulb, dynamic PointLight
+- [x] `LampPreview3D.swift` — SwiftUI lamp preview: base, pole, shade, bulb glow state
 - [x] `ConnectionBadge.swift` — Animated BLE status indicator
 
 #### 10. Features — Settings
@@ -105,7 +121,7 @@ Lumina is a cyber-premium iOS companion app for the **Lumina ESP32-S3 Smart Lamp
 ## Current Architecture
 
 ```
-Lumina-Swift/
+Source 2/Lumina/Lumina/
 ├── App/
 │   └── LuminaApp.swift                    # Root: routing + MainTabView
 ├── Core/
@@ -114,7 +130,7 @@ Lumina-Swift/
 │   │   └── UserProfile.swift              # User profile model
 │   ├── Services/
 │   │   ├── BluetoothManager.swift         # BLE Central (scan, connect, commands)
-│   │   ├── HomeKitManager.swift           # HomeKit pairing + accessory management
+│   │   ├── HomeKitManager.swift           # HomeKit accessory state helpers; pairing TODO
 │   │   └── HapticManager.swift            # iOS haptic feedback
 │   ├── Repositories/
 │   │   └── DeviceRepository.swift         # Device CRUD + persistence
@@ -126,7 +142,7 @@ Lumina-Swift/
 │   ├── Dashboard/
 │   │   ├── MainDashboardView.swift        # Main lamp control screen
 │   │   ├── DashboardViewModel.swift       # Dashboard state + logic
-│   │   ├── LampPreview3D.swift             # RealityKit 3D lamp preview
+│   │   ├── LampPreview3D.swift             # SwiftUI lamp preview
 │   │   └── ControlCard.swift              # Power/brightness/color card
 │   ├── Onboarding/
 │   │   ├── OnboardingView.swift           # Device discovery flow
@@ -157,7 +173,7 @@ Root/
 
 ### The "Brains" — Service Layer ✅
 - **`BluetoothManager.swift`** — Configured to scan for `180A` service UUID and match the exact advertised name `"Lumina ESP32S3 Lamp"`. Full BLE state machine, command queue for power/brightness/color, connection timeout handling.
-- **`HomeKitManager.swift`** — `HMAccessorySetupManager` integration for the native iOS HomeKit accessory setup flow. Handles pairing completion, accessory addition to home, brightness/color/power updates.
+- **`HomeKitManager.swift`** — Maintains HomeKit home/accessory state and build-safe accessory update helpers. Native pairing still needs to be rewired to the current iOS SDK.
 
 ### The Device Model ✅
 - **`LampDevice.swift`** — Hardcoded with exact hardware metadata:
@@ -248,6 +264,72 @@ Action: Encode the full LampDevice struct to UserDefaults using Codable. On app 
 Action: Add a debounce (300ms) in `DashboardViewModel.sendUpdate()`. Use `Timer.publish(every: 0.3, on: .main, in: .common)` to batch rapid color changes into a single command.
 ```
 
+### 2.10 Rework Authentication, Sign Out, and User Profile
+**Why:** The app can run locally, but account flows are still mostly placeholders. Tapping **Sign Out** in Settings currently does not visibly return the user to the sign-in flow. Tapping the user account opens a very simple profile page that needs a more polished product experience.
+
+```
+Action:
+- Create a shared app session/auth state instead of reading `UserDefaults` only at app launch.
+- Make Sign Out reset app state immediately and navigate back to SignInView.
+- Improve ProfileView with richer UI, editable user details, validation, save/cancel states, and clearer account provider/status information.
+- Decide whether anonymous/skip login remains supported, and make the UX explicit.
+```
+
+### 2.11 Implement Settings Device Actions
+**Why:** The Settings screen has an **Add New Device** row, but tapping it currently does nothing. Device detail actions such as forget/remove also need real behavior.
+
+```
+Action:
+- Wire Add New Device to the onboarding/discovery flow.
+- Connect SettingsView to DeviceRepository instead of a local empty array.
+- Implement Forget Device and update saved device state.
+- Show empty, connected, disconnected, and loading states clearly.
+```
+
+### 2.12 Improve Dashboard Power Control UI
+**Why:** The current power toggle is not visually obvious enough for a primary lamp-control action.
+
+```
+Action:
+- Redesign the power control as a more prominent glowing button or large switch.
+- Make on/off states unmistakable through color, label, glow, and haptic feedback.
+- Ensure brightness/color controls visibly disable or collapse when power is off.
+```
+
+### 2.13 Improve ColorWheelPicker Interaction
+**Why:** The color wheel is hard to control. Picking color should feel smooth across the middle of the wheel, not only near the outside circle.
+
+```
+Action:
+- Refine the color picking math and drag target so the full wheel area feels responsive.
+- Smooth pointer movement and reduce jumpiness near the center.
+- Add better visual feedback for the selected color and current touch position.
+- Keep BLE updates debounced so smoother UI does not spam the ESP32.
+```
+
+### 2.14 Make Preset Colors User-Editable
+**Why:** The default preset colors below the color wheel are static. Users should be able to personalize them.
+
+```
+Action:
+- Store preset colors in UserDefaults or a small repository model.
+- Allow users to add the current selected color as a preset.
+- Allow deleting or reordering presets.
+- Keep a sensible default palette for first launch.
+```
+
+### 2.15 Redesign Discovery / Onboarding Page
+**Why:** The current discovery page has overlapping UI/text and feels messy during local testing. This is a first-run experience, so it needs to be more attractive and more user-friendly.
+
+```
+Action:
+- Redesign OnboardingView layout for iPhone safe areas and smaller screens.
+- Prevent text overlap with scrolling or adaptive spacing.
+- Use clearer copy for Bluetooth/device discovery states.
+- Add better empty, scanning, found, connecting, error, and success states.
+- Replace the static placeholder with a polished animated lamp/discovery visual.
+```
+
 ---
 
 ## Phase Roadmap
@@ -264,15 +346,25 @@ Action: Add a debounce (300ms) in `DashboardViewModel.sendUpdate()`. Use `Timer.
 
 ## Known Issues
 
-1. **`DashboardViewModel` Combine vs `@Observable` incompatibility** — `BluetoothManager` is `@Observable`, but bindings use Combine `Publishers`. Fix as described in Phase 2.7 above.
+1. **Authentication state is not app-wide/reactive** — Sign Out updates `UserDefaults`, but the root app routing does not immediately react. Fix as described in Phase 2.10.
 
-2. **`OnboardingViewModel` creates its own `BluetoothManager`** — Each manager opens its own `CBCentralManager`. Only one should exist. Fix via shared instance or `@Environment`.
+2. **Settings actions are incomplete** — Add New Device and some device/account actions are placeholders. Fix as described in Phase 2.11.
 
-3. **`DeviceRepository.loadDevices()` is a stub** — Device state is not persisted across sessions. Fix as described in Phase 2.8.
+3. **Profile page is too simple** — UserProfile and ProfileView need a richer, more complete account-management experience. Fix as described in Phase 2.10.
 
-4. **Color wheel sends commands per frame** — No debounce, risks UART buffer overflow on ESP32. Fix as described in Phase 2.9.
+4. **Onboarding/discovery UI overlaps** — The discovery page needs a responsive redesign for real iPhone screens. Fix as described in Phase 2.15.
 
-5. **`LampPreviewPlaceholder` in Onboarding** — Static placeholder should be replaced with animated preview variant.
+5. **Color wheel is hard to control** — Color picking should be smoother across the full wheel area and should not feel limited to the outside ring. Fix as described in Phase 2.13.
+
+6. **Preset colors are static** — Users cannot add, edit, delete, or reorder default colors. Fix as described in Phase 2.14.
+
+7. **Power control is not obvious enough** — The primary on/off control needs stronger visual hierarchy. Fix as described in Phase 2.12.
+
+8. **`OnboardingViewModel` creates its own `BluetoothManager`** — Each manager opens its own `CBCentralManager`. Only one should exist. Fix via shared instance or `@Environment`.
+
+9. **`DeviceRepository.loadDevices()` is still incomplete** — Device state is not fully persisted across sessions. Fix as described in Phase 2.8.
+
+10. **Color wheel / BLE command rate needs throttling** — UI smoothing should be paired with debounced BLE writes to avoid overwhelming the ESP32. Fix as described in Phase 2.9.
 
 ---
 
