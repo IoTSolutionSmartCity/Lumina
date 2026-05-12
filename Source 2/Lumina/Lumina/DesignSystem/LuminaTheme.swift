@@ -121,4 +121,19 @@ extension Color {
         uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
         return (UInt8(r * 255), UInt8(g * 255), UInt8(b * 255))
     }
+
+    var hexString: String {
+        let components = self.components
+        return String(format: "%02X%02X%02X", components.red, components.green, components.blue)
+    }
+
+    var hsbaComponents: (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+        let uiColor = UIColor(self)
+        var h: CGFloat = 0
+        var s: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+        uiColor.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
+        return (h, s, b, a)
+    }
 }

@@ -2,21 +2,27 @@ import SwiftUI
 
 @main
 struct LuminaApp: App {
-    @State private var isOnboarded = UserDefaults.standard.bool(forKey: "isOnboarded")
-    @State private var isAuthenticated = UserDefaults.standard.bool(forKey: "isAuthenticated")
+    @State private var session = AppSession()
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if !isOnboarded {
-                    OnboardingView(isOnboarded: $isOnboarded)
-                } else if !isAuthenticated {
-                    SignInView(isAuthenticated: $isAuthenticated)
+                if !session.isOnboarded {
+                    OnboardingView(isOnboarded: Binding(
+                        get: { session.isOnboarded },
+                        set: { session.isOnboarded = $0 }
+                    ))
+                } else if !session.isAuthenticated {
+                    SignInView(isAuthenticated: Binding(
+                        get: { session.isAuthenticated },
+                        set: { session.isAuthenticated = $0 }
+                    ))
                 } else {
                     MainTabView()
                 }
             }
             .preferredColorScheme(.dark)
+            .environment(session)
         }
     }
 }

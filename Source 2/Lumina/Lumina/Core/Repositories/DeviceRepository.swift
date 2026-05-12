@@ -3,12 +3,14 @@ import Foundation
 @MainActor
 @Observable
 final class DeviceRepository {
+    static let shared = DeviceRepository()
+
     var devices: [LampDevice] = []
     var selectedDevice: LampDevice?
 
     private let userDefaultsKey = "savedLampDevices"
 
-    init() {
+    private init() {
         loadDevices()
     }
 

@@ -39,6 +39,15 @@ struct MainDashboardView: View {
         .onAppear {
             viewModel.onAppear()
         }
+        .onChange(of: viewModel.brightness) { _, _ in
+            viewModel.sendUpdate()
+        }
+        .onChange(of: viewModel.selectedColor.hexString) { _, _ in
+            viewModel.sendUpdate()
+        }
+        .onChange(of: viewModel.isOn) { _, _ in
+            viewModel.sendUpdate(debounced: false)
+        }
         .sheet(isPresented: $viewModel.showOnboarding) {
             OnboardingView(isOnboarded: .constant(true))
         }

@@ -13,7 +13,8 @@ final class DashboardViewModel {
 
     private let bluetoothManager = BluetoothManager()
     private let homeKitManager = HomeKitManager()
-    private let deviceRepository = DeviceRepository()
+    private let deviceRepository = DeviceRepository.shared
+    private var pendingUpdateTask: Task<Void, Never>?
 
     func onAppear() {
         if deviceRepository.devices.isEmpty {
@@ -45,7 +46,22 @@ final class DashboardViewModel {
         HapticManager.shared.success()
     }
 
-    func sendUpdate() {
+    func sendUpdate(debounced: Bool = true) {
+        pendingUpdateTask?.cancel()
+
+        guard debounced else {
+            performSendUpdate()
+            return
+        }
+
+        pendingUpdateTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            self?.performSendUpdate()
+        }
+    }
+
+    private func performSendUpdate() {
         guard let device = connectedDevice else { return }
         var updated = device
         updated.brightness = brightness
@@ -70,26 +86,26 @@ final class DashboardViewModel {
         isOn = true
         brightness = 0.9
         selectedColor = LuminaTheme.neonCyan
-        sendUpdate()
+        sendUpdate(debounced: false)
     }
 
     func applyRelaxScene() {
         isOn = true
         brightness = 0.4
         selectedColor = LuminaTheme.neonPurpleLight
-        sendUpdate()
+        sendUpdate(debounced: false)
     }
 
     func applyPartyScene() {
         isOn = true
         brightness = 1.0
         selectedColor = LuminaTheme.neonPink
-        sendUpdate()
+        sendUpdate(debounced: false)
     }
 
     func turnOff() {
         isOn = false
         brightness = 0
-        sendUpdate()
+        sendUpdate(debounced: false)
     }
 }

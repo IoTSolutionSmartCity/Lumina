@@ -5,8 +5,6 @@ struct ControlCard: View {
     @Binding var selectedColor: Color
     @Binding var isOn: Bool
 
-    @State private var isExpanded = true
-
     var body: some View {
         GlassCard {
             VStack(spacing: LuminaTheme.Spacing.lg) {
@@ -28,29 +26,57 @@ struct ControlCard: View {
     }
 
     private var powerToggle: some View {
-        HStack {
-            HStack(spacing: LuminaTheme.Spacing.sm) {
-                GlowIcon(systemName: "power", color: isOn ? LuminaTheme.neonGreen : .white.opacity(0.4), size: 20)
-                Text("Power")
-                    .font(LuminaTheme.Typography.headline)
-                    .foregroundColor(.white)
+        Button {
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+                isOn.toggle()
             }
+            HapticManager.shared.mediumImpact()
+        } label: {
+            HStack(spacing: LuminaTheme.Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(isOn ? LuminaTheme.neonGreen.opacity(0.22) : LuminaTheme.neonRed.opacity(0.14))
+                        .frame(width: 56, height: 56)
+                        .shadow(color: (isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(isOn ? 0.75 : 0.25), radius: isOn ? 18 : 8)
 
-            Spacer()
-
-            Toggle("", isOn: Binding(
-                get: { isOn },
-                set: { newValue in
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        isOn = newValue
-                    }
-                    HapticManager.shared.mediumImpact()
+                    GlowIcon(
+                        systemName: "power",
+                        color: isOn ? LuminaTheme.neonGreen : .white.opacity(0.55),
+                        size: 26,
+                        glowRadius: isOn ? 12 : 3
+                    )
                 }
-            ))
-            .toggleStyle(NeonToggleStyle(color: LuminaTheme.neonGreen))
-            .labelsHidden()
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isOn ? "Lamp is On" : "Lamp is Off")
+                        .font(LuminaTheme.Typography.title2)
+                        .foregroundColor(.white)
+                    Text(isOn ? "Tap to turn off" : "Tap to wake your lamp")
+                        .font(LuminaTheme.Typography.caption)
+                        .foregroundColor(.white.opacity(0.55))
+                }
+
+                Spacer()
+
+                Text(isOn ? "ON" : "OFF")
+                    .font(LuminaTheme.Typography.captionBold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, LuminaTheme.Spacing.md)
+                    .padding(.vertical, LuminaTheme.Spacing.sm)
+                    .background((isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(0.85))
+                    .clipShape(Capsule())
+            }
+            .padding(LuminaTheme.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xl)
+                    .fill(isOn ? LuminaTheme.neonGreen.opacity(0.12) : Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xl)
+                            .stroke(isOn ? LuminaTheme.neonGreen.opacity(0.55) : Color.white.opacity(0.14), lineWidth: 1)
+                    )
+            )
         }
-        .padding(.bottom, isOn ? 0 : LuminaTheme.Spacing.lg)
+        .buttonStyle(PlainButtonStyle())
     }
 
     private var brightnessControl: some View {

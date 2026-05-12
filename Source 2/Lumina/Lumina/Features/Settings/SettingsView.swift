@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var devices: [LampDevice] = []
-    @State private var showAbout = false
+    @Environment(AppSession.self) private var session
+    @State private var deviceRepository = DeviceRepository.shared
     @State private var showDeviceDetail: LampDevice?
+    @State private var showAddDevice = false
+    @State private var showSignOutConfirmation = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -25,14 +27,44 @@ struct SettingsView: View {
             .preferredColorScheme(.dark)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(item: $showDeviceDetail) { device in
-                DeviceDetailView(device: device)
+                DeviceDetailView(device: device) {
+                    deviceRepository.removeDevice(device)
+                    showDeviceDetail = nil
+                }
+            }
+            .sheet(isPresented: $showAddDevice) {
+                OnboardingView(isOnboarded: Binding(
+                    get: { session.isOnboarded },
+                    set: { session.isOnboarded = $0 }
+                ))
+            }
+            .confirmationDialog("Sign out of Lumina?", isPresented: $showSignOutConfirmation, titleVisibility: .visible) {
+                Button("Sign Out", role: .destructive) {
+                    signOut()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("You can sign in again or continue anonymously later.")
             }
         }
     }
 
     private var devicesSection: some View {
         Section {
-            ForEach(devices) { device in
+            if deviceRepository.devices.isEmpty {
+                VStack(alignment: .leading, spacing: LuminaTheme.Spacing.sm) {
+                    Text("No saved lamps")
+                        .font(LuminaTheme.Typography.headline)
+                        .foregroundColor(.white)
+                    Text("Add your Lumina ESP32-S3 lamp to control it from this phone.")
+                        .font(LuminaTheme.Typography.caption)
+                        .foregroundColor(.white.opacity(0.55))
+                }
+                .padding(.vertical, LuminaTheme.Spacing.sm)
+                .listRowBackground(LuminaTheme.darkSurface)
+            }
+
+            ForEach(deviceRepository.devices) { device in
                 Button {
                     showDeviceDetail = device
                 } label: {
@@ -74,7 +106,7 @@ struct SettingsView: View {
             }
 
             Button {
-                // Add new device
+                showAddDevice = true
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -87,9 +119,6 @@ struct SettingsView: View {
         } header: {
             Text("Devices")
                 .foregroundColor(.white.opacity(0.5))
-        }
-        .onAppear {
-            loadDevices()
         }
     }
 
@@ -123,7 +152,7 @@ struct SettingsView: View {
             .listRowBackground(LuminaTheme.darkSurface)
 
             Button(role: .destructive) {
-                signOut()
+                showSignOutConfirmation = true
             } label: {
                 HStack {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -196,18 +225,15 @@ struct SettingsView: View {
         return initials.joined().uppercased()
     }
 
-    private func loadDevices() {
-        // Load from repository
-    }
-
     private func signOut() {
-        UserDefaults.standard.set(false, forKey: "isAuthenticated")
-        UserDefaults.standard.set(false, forKey: "isOnboarded")
+        session.signOut()
+        dismiss()
     }
 }
 
 struct DeviceDetailView: View {
     let device: LampDevice
+    let onForget: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -259,6 +285,7 @@ struct DeviceDetailView: View {
 
                     Section {
                         Button(role: .destructive) {
+                            onForget()
                             dismiss()
                         } label: {
                             HStack {
