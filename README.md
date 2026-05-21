@@ -40,16 +40,16 @@ Lumina bridges three layers:
 │  ┌────────────────────┴──────────────────────────────────┐  │
 │  │              HomeSpan Firmware                          │  │
 │  │   ┌──────────────┐  ┌────────────────────────────┐    │  │
-│  │   │ LightBulb    │  │  Device Information (0x180A)│    │  │
+│  │   │ RGBW Light   │  │  Device Information (0x180A)│    │  │
 │  │   │ Service      │  │  - Manufacturer: Lumina     │    │  │
-│  │   │ (Power/Bri.) │  │  - Model: ESP32S3-N16R8    │    │  │
+│  │   │ H/S/B + PWM  │  │  - Model: ESP32S3-N16R8    │    │  │
 │  │   └──────────────┘  │  - Serial: LUMINA-S3-001  │    │  │
 │  │                      └────────────────────────────┘    │  │
 │  └────────────────────┬──────────────────────────────────┘  │
 │         ┌──────────────┴──────────────┐                     │
 │    ┌────┴────┐              ┌──────────┴───┐                 │
-│    │Built-in │              │  Serial UART │                 │
-│    │  LED    │              │  (115200 baud)│                 │
+│    │ 12 V    │              │  Serial UART │                 │
+│    │ RGBW PWM│              │  (115200 baud)│                 │
 │    └─────────┘              └──────────────┘                 │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -105,12 +105,16 @@ graph TB
         HS[HomeSpan Firmware v2.x]
         LB[LightBulb Service]
         DI[Device Info Service 0x180A]
-        LED[Built-in LED Pin 48]
+        PWM[RGBW PWM GPIO4 GPIO5 GPIO6 GPIO7]
+        DRIVER[12V RGBW MOSFET Driver]
+        STATUS[Built-in Status LED GPIO48]
         UART[Serial UART 115200 baud]
 
         HS --> LB
         HS --> DI
-        LB --> LED
+        LB --> PWM
+        PWM --> DRIVER
+        HS --> STATUS
         HS --> UART
     end
 
@@ -167,7 +171,7 @@ flowchart TD
     COLOR --> UPDATE
     SCENE --> UPDATE
     UPDATE --> LIVE[3D Preview Updates Live]
-    UPDATE --> HW[ESP32 LED Updates]
+    UPDATE --> HW[RGBW Lamp Updates]
 
     DASH --> SETTINGS[Settings]
     SETTINGS --> PROFILE[Edit Profile]
@@ -190,7 +194,7 @@ sequenceDiagram
     participant BLE as BluetoothManager
     participant HK as HomeKitManager
     participant ESP as ESP32-S3 HomeSpan
-    participant LED as Built-in LED
+    participant LED as 12V RGBW Lamp
 
     rect rgb(20, 20, 40)
         Note over User, LED: Onboarding and Pairing
@@ -214,11 +218,11 @@ sequenceDiagram
     end
 
     rect rgb(20, 40, 30)
-        Note over User, LED: Control Flow Primary BLE
+        Note over User, LED: Control Flow Primary BLE/App Command
         User->>App: Adjust brightness color power
         App->>BLE: sendCommand setPower setBrightness setColor
         BLE->>ESP: BLE Write Service 0x180A Char 0x2A58
-        ESP->>LED: digitalWrite PWM
+        ESP->>LED: LEDC PWM via 4 MOSFET channels
         ESP-->>BLE: Write confirmation
         BLE-->>App: Command sent
         App->>User: 3D preview updates
@@ -231,7 +235,7 @@ sequenceDiagram
         BLE-->>App: Failed no response
         App->>HK: updateAccessory()
         HK->>ESP: HomeKit IP BLE HAP Characteristic Write
-        ESP->>LED: digitalWrite PWM
+        ESP->>LED: LEDC PWM via 4 MOSFET channels
         ESP-->>HK: Update confirmed
         HK-->>App: Update complete
         App->>User: 3D preview updates
@@ -257,12 +261,16 @@ graph LR
             AI --> MFR[Manufacturer Lumina]
             AI --> MODEL[Model ESP32S3-N16R8]
             AI --> SERIAL[Serial LUMINA-S3-001]
-            AI --> FW[Firmware 1.0.0]
+            AI --> FW[Firmware 1.1.0]
 
-            LB[BuiltInLamp extends Service LightBulb]
+            LB[RgbwLamp extends Service LightBulb]
             LB --> POWER[Characteristic On]
-            LB --> NAME[Characteristic Name ESP32S3 Built-in Lamp]
-            LB --> PIN[ledPin 48 LED_ACTIVE_LOW 0]
+            LB --> BRIGHT[Characteristic Brightness]
+            LB --> HUE[Characteristic Hue]
+            LB --> SAT[Characteristic Saturation]
+            LB --> NAME[Characteristic Name Lumina RGBW Lamp]
+            LB --> PWM[GPIO4 GPIO5 GPIO6 GPIO7 PWM]
+            LB --> STATUS[GPIO48 Status LED]
         end
 
         HS_START --> Accessory
@@ -276,7 +284,7 @@ graph LR
         UART_P[Serial UART 115200 baud Debug Log]
     end
 
-    LB --> LED_P[Built-in LED]
+    LB --> LED_P[12V RGBW MOSFET Driver]
     HS_LOG --> UART_P
     BLE_P -.-> HomeSpan
     HK_P -.-> HomeSpan
@@ -286,7 +294,10 @@ graph LR
 
 - **Pairing Code:** `46637726`
 - **Wi-Fi:** Connects to `Wong / 93484972a` (configurable in code)
-- **LED Pin:** `48` (ESP32-S3 built-in LED, active HIGH)
+- **RGBW PWM Pins:** Red `GPIO4`, Green `GPIO5`, Blue `GPIO6`, White `GPIO7`
+- **Status LED Pin:** `GPIO48` (ESP32-S3 built-in LED, active HIGH)
+- **PWM Output:** 5 kHz, 12-bit LEDC PWM for four low-side MOSFET channels
+- **Hardware Driver:** See [`ESP32-S3-N16R8/RGBW_PWM_DRIVER.md`](ESP32-S3-N16R8/RGBW_PWM_DRIVER.md)
 - **Serial:** `115200 baud` — logs HomeKit handshake and lamp state changes
 - **Log Level:** `1` — enables verbose HomeSpan output for debugging
 
@@ -356,7 +367,10 @@ Root Config/
 | BLE Service UUID | 180A (Device Information) |
 | BLE Write Char UUID | 2A58 |
 | BLE Advertised Name | Lumina ESP32S3 Lamp |
-| Built-in LED Pin | GPIO 48 (active HIGH) |
+| RGBW PWM Pins | Red GPIO 4, Green GPIO 5, Blue GPIO 6, White GPIO 7 |
+| Built-in Status LED Pin | GPIO 48 (active HIGH) |
+| External Driver | Four low-side logic-level N-MOSFET channels |
+| Hardware Design | `ESP32-S3-N16R8/RGBW_PWM_DRIVER.md` |
 | Serial Baud Rate | 115200 |
 | HomeSpan Category | Lighting |
 
