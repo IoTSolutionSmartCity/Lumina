@@ -1,23 +1,27 @@
 /*
   Lumina ESP32-S3 HomeKit RGBW Lamp
+  - Wi-Fi provisioning via HomeSpan's Setup Access Point + captive portal
+    (open "Lumina-Setup" network, auto-launched when no credentials are stored)
   - Pairs to Apple Home via HomeSpan
   - Exposes one color LightBulb accessory
   - Drives four external 12 V RGBW channels with PWM MOSFET stages
-  - Keeps the built-in LED as a simple on/off status indicator
+  - Reflects provisioning/connect/pairing/ready state on the onboard WS2812
 */
 
 #include <Arduino.h>
 #include <esp_arduino_version.h>
 #include "HomeSpan.h"
 #include "LuminaWifi.h"
+#include "SystemState.h"
+#include "StatusLed.h"
 
-// ---- Board LED configuration ----
-// GPIO 48 is common for the ESP32-S3 built-in RGB/status LED on many boards.
-// ESP32-S3 Arduino core defines LED_BUILTIN as 97 on many boards, which is not a
-// valid GPIO for LEDC. The onboard LED on ESP32S3-N16R8 is GPIO 48.
-#define LED_PIN 48
-
-#define LED_ACTIVE_LOW 0
+// ---- Onboard status LED configuration ----
+// The onboard LED on ESP32S3-N16R8 is a single addressable WS2812 on GPIO 48.
+// ESP32-S3 Arduino core defines LED_BUILTIN as 97 on many boards, which is not
+// a valid GPIO for this purpose, so it is not used here.
+#ifndef STATUS_LED_PIN
+  #define STATUS_LED_PIN 48
+#endif
 
 // ---- External RGBW lamp PWM pins ----
 // Confirm these against your exact ESP32-S3-N16R8 board before wiring.
@@ -158,14 +162,6 @@ class RgbwLamp : public Service::LightBulb {
       return power->updated() ? power->getNewVal() : power->getVal();
     }
 
-    void setStatusLed(bool on) {
-      if (LED_ACTIVE_LOW) {
-        digitalWrite(LED_PIN, on ? LOW : HIGH);
-      } else {
-        digitalWrite(LED_PIN, on ? HIGH : LOW);
-      }
-    }
-
     void applyState() {
       bool isOn = currentPower();
       int brightnessPercent = constrain(currentBrightness(), 0, 100);
@@ -188,7 +184,6 @@ class RgbwLamp : public Service::LightBulb {
       writePwmOutput(GREEN_OUTPUT, dutyFromFloat(green));
       writePwmOutput(BLUE_OUTPUT, dutyFromFloat(blue));
       writePwmOutput(WHITE_OUTPUT, dutyFromFloat(white));
-      setStatusLed(isOn);
 
       Serial.printf(
         "HomeKit RGBW: power=%s brightness=%d hue=%.1f saturation=%.1f duty[R=%u G=%u B=%u W=%u]\n",
@@ -211,7 +206,6 @@ class RgbwLamp : public Service::LightBulb {
       saturation = new Characteristic::Saturation(0);
       new Characteristic::Name("Lumina RGBW Lamp");
 
-      pinMode(LED_PIN, OUTPUT);
       attachPwmOutput(RED_OUTPUT);
       attachPwmOutput(GREEN_OUTPUT);
       attachPwmOutput(BLUE_OUTPUT);
@@ -225,19 +219,69 @@ class RgbwLamp : public Service::LightBulb {
     }
 };
 
+// Drives the onboard status LED from HomeSpan's own lifecycle status, so the
+// indicator always reflects ground truth (including immediately after a
+// reboot into an already-paired device) rather than a separately tracked
+// state machine that could drift out of sync.
+void onHomeSpanStatus(HS_STATUS status) {
+  switch (status) {
+    case HS_WIFI_NEEDED:
+    case HS_WIFI_SCANNING:
+    case HS_AP_STARTED:
+    case HS_AP_CONNECTED:
+      StatusLed::setState(SystemState::AP_MODE);
+      break;
+
+    case HS_WIFI_CONNECTING:
+    case HS_ETH_CONNECTING:
+      StatusLed::setState(SystemState::CONNECTING);
+      break;
+
+    case HS_PAIRING_NEEDED:
+      StatusLed::setState(SystemState::HOMEKIT_PAIRING);
+      break;
+
+    case HS_PAIRED:
+    case HS_CONNECTED:
+      StatusLed::setState(SystemState::READY);
+      break;
+
+    default:
+      // Transient states (Command Mode, OTA, reboot, factory reset, AP
+      // teardown) intentionally leave the current pattern running so the
+      // indicator doesn't flicker between unrelated states.
+      break;
+  }
+
+  Serial.printf("HomeSpan status -> %s\n", homeSpan.statusString(status));
+}
+
 void setup() {
   Serial.begin(115200);
   delay(2000);
+
+  // Sane default until HomeSpan reports its first real status: HomeSpan
+  // boots into HS_INITIAL_SETUP, which does not itself trigger the status
+  // callback, and AP_MODE is the correct steady-state for a fresh device.
+  StatusLed::begin(STATUS_LED_PIN);
+  StatusLed::setState(SystemState::AP_MODE);
 
   LuminaWifi::resetStack();
 
   homeSpan.setPairingCode("46637726");
   homeSpan.setControlPin(0);
-  // homeSpan.setWifiCredentials("Wong", "93484972a");
-  homeSpan.setWifiCredentials("IoTSwitch", "88888888");
   homeSpan.setWifiBegin(LuminaWifi::begin);
   homeSpan.setConnectionCallback(LuminaWifi::onConnection);
+  homeSpan.setStatusCallback(onHomeSpanStatus);
   homeSpan.setLogLevel(1);
+
+  // Wi-Fi provisioning: HomeSpan stores credentials in NVS and reconnects
+  // automatically on power cycles. When none are stored it auto-launches an
+  // open Setup Access Point with a captive-portal network scan/entry page.
+  homeSpan.setApSSID("Lumina-Setup");
+  homeSpan.setApPassword("");  // open network, no password required to join
+  homeSpan.setApTimeout(300);
+  homeSpan.enableAutoStartAP();
 
   homeSpan.begin(Category::Lighting, "Lumina ESP32S3 Lamp");
 
@@ -257,5 +301,6 @@ void setup() {
 }
 
 void loop() {
+  StatusLed::update();
   homeSpan.poll();
 }
