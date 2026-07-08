@@ -216,15 +216,12 @@ class BuiltInHomeKitLamp : public Service::LightBulb {
 
 void setup() {
   Serial.begin(115200);
-  delay(2000);
-
-  LuminaWifi::resetStack();
+  while (!Serial && millis() < 5000) delay(10);  // wait for USB-CDC monitor, cap so headless boots don't hang
   printBoardInfo();
 
   homeSpan.setPairingCode("46637726");
   homeSpan.setControlPin(CONTROL_BUTTON_PIN);
   homeSpan.setWifiCredentials(WIFI_SSID, WIFI_PASSWORD);
-  homeSpan.setWifiBegin(LuminaWifi::begin);
   homeSpan.setConnectionCallback(LuminaWifi::onConnection);
   homeSpan.setLogLevel(1);
 

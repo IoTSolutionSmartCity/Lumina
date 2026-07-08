@@ -258,7 +258,7 @@ void onHomeSpanStatus(HS_STATUS status) {
 
 void setup() {
   Serial.begin(115200);
-  delay(2000);
+  while (!Serial && millis() < 5000) delay(10);  // wait for USB-CDC monitor, cap so headless boots don't hang
 
   // Sane default until HomeSpan reports its first real status: HomeSpan
   // boots into HS_INITIAL_SETUP, which does not itself trigger the status
@@ -266,11 +266,8 @@ void setup() {
   StatusLed::begin(STATUS_LED_PIN);
   StatusLed::setState(SystemState::AP_MODE);
 
-  LuminaWifi::resetStack();
-
   homeSpan.setPairingCode("46637726");
   homeSpan.setControlPin(0);
-  homeSpan.setWifiBegin(LuminaWifi::begin);
   homeSpan.setConnectionCallback(LuminaWifi::onConnection);
   homeSpan.setStatusCallback(onHomeSpanStatus);
   homeSpan.setLogLevel(1);
