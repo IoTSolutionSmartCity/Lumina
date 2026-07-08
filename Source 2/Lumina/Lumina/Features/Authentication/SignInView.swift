@@ -6,6 +6,7 @@ struct SignInView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showError = false
+    @State private var hasAppeared = false
 
     var body: some View {
         ZStack {
@@ -15,18 +16,28 @@ struct SignInView: View {
                 Spacer()
 
                 logoSection
+                    .scaleEffect(hasAppeared ? 1 : 0.85)
+                    .opacity(hasAppeared ? 1 : 0)
 
                 Spacer()
 
                 signInOptionsSection
+                    .opacity(hasAppeared ? 1 : 0)
+                    .offset(y: hasAppeared ? 0 : 16)
 
                 Spacer()
 
                 skipSection
+                    .opacity(hasAppeared ? 1 : 0)
             }
             .padding(.horizontal, LuminaTheme.Spacing.xl)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+                hasAppeared = true
+            }
+        }
         .alert("Sign In Error", isPresented: $showError) {
             Button("OK") { }
         } message: {
@@ -83,6 +94,7 @@ struct SignInView: View {
                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                 )
             }
+            .buttonStyle(.pressable)
             .disabled(isLoading)
 
             if isLoading {

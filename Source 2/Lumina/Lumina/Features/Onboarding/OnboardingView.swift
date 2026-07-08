@@ -11,7 +11,7 @@ struct OnboardingView: View {
                 LuminaTheme.backgroundGradient.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: LuminaTheme.Spacing.lg) {
+                    VStack(spacing: LuminaTheme.Spacing.xl) {
                         headerSection
 
                         stateCard
@@ -21,6 +21,9 @@ struct OnboardingView: View {
                     .padding(.horizontal, LuminaTheme.Spacing.lg)
                     .padding(.top, LuminaTheme.Spacing.lg)
                     .padding(.bottom, LuminaTheme.Spacing.xxl)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isBluetoothEnabled)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.discoveredDevices.map(\.id))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.connectionState)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -94,10 +97,13 @@ struct OnboardingView: View {
         VStack(spacing: LuminaTheme.Spacing.lg) {
             if !viewModel.isBluetoothEnabled {
                 bluetoothWarning
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
             } else if viewModel.discoveredDevices.isEmpty {
                 scanningSection
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
             } else {
                 deviceListSection
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
         .padding(LuminaTheme.Spacing.lg)
@@ -130,7 +136,16 @@ struct OnboardingView: View {
 
     private var scanningSection: some View {
         VStack(spacing: LuminaTheme.Spacing.md) {
-            PulsingDot(color: LuminaTheme.neonPurple, size: 12)
+            ZStack {
+                Circle()
+                    .stroke(LuminaTheme.neonPurple.opacity(0.25), lineWidth: 1)
+                    .frame(width: 64, height: 64)
+                Circle()
+                    .stroke(LuminaTheme.neonPurple.opacity(0.4), lineWidth: 1)
+                    .frame(width: 44, height: 44)
+                PulsingDot(color: LuminaTheme.neonPurple, size: 12)
+            }
+            .frame(height: 64)
 
             VStack(spacing: 4) {
                 Text("Scanning for Lumina")
@@ -172,12 +187,14 @@ struct OnboardingView: View {
                     .font(LuminaTheme.Typography.caption)
                     .foregroundColor(LuminaTheme.neonPurple)
                 }
+                .buttonStyle(.pressable)
             }
 
             ForEach(viewModel.discoveredDevices) { device in
                 DeviceDiscoveryRow(device: device, isConnecting: viewModel.connectingDevice?.id == device.id) {
                     viewModel.connect(to: device)
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
@@ -273,7 +290,9 @@ struct DeviceDiscoveryRow: View {
                         .padding(.vertical, LuminaTheme.Spacing.sm)
                         .background(LuminaTheme.neonPurple)
                         .clipShape(Capsule())
+                        .shadow(color: LuminaTheme.neonPurple.opacity(0.4), radius: 8)
                 }
+                .buttonStyle(.pressable)
             }
         }
         .padding(LuminaTheme.Spacing.md)

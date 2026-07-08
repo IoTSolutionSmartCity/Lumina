@@ -34,13 +34,14 @@ struct GlassSlider: View {
                     RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.full)
                         .fill(LuminaTheme.primaryGradient)
                         .frame(width: geometry.size.width * value)
+                        .shadow(color: LuminaTheme.neonPurple.opacity(isDragging ? 0.55 : 0.25), radius: isDragging ? 8 : 4)
 
                     Circle()
                         .fill(.white)
                         .frame(width: isDragging ? 24 : 20, height: isDragging ? 24 : 20)
                         .shadow(color: LuminaTheme.neonPurple.opacity(0.6), radius: isDragging ? 10 : 6)
                         .offset(x: geometry.size.width * value - (isDragging ? 12 : 10))
-                        .animation(.spring(response: 0.3), value: isDragging)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isDragging)
                 }
                 .frame(height: 8)
                 .contentShape(Rectangle())

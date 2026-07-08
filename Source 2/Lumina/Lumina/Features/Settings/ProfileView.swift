@@ -8,6 +8,7 @@ struct ProfileView: View {
     @State private var originalEmail: String = ""
     @State private var showingSaveConfirmation = false
     @State private var validationMessage: String?
+    @State private var isGlowing = false
 
     var body: some View {
         ZStack {
@@ -40,6 +41,13 @@ struct ProfileView: View {
         VStack(spacing: LuminaTheme.Spacing.md) {
             ZStack {
                 Circle()
+                    .stroke(LuminaTheme.primaryGradient, lineWidth: 2)
+                    .frame(width: 108, height: 108)
+                    .opacity(isGlowing ? 1 : 0.6)
+                    .scaleEffect(isGlowing ? 1.04 : 1.0)
+                    .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: isGlowing)
+
+                Circle()
                     .fill(LuminaTheme.primaryGradient)
                     .frame(width: 96, height: 96)
                     .shadow(color: LuminaTheme.neonPurple.opacity(0.45), radius: 20)
@@ -47,6 +55,7 @@ struct ProfileView: View {
                 Text(userInitials)
                     .font(.system(size: 34, weight: .bold))
                     .foregroundColor(.white)
+                    .contentTransition(.opacity)
             }
             .overlay(Circle().stroke(LuminaTheme.glassBorder, lineWidth: 2))
 
@@ -63,6 +72,7 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, LuminaTheme.Spacing.xl)
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.xxl)
+        .onAppear { isGlowing = true }
     }
 
     private var profileFields: some View {
@@ -83,10 +93,12 @@ struct ProfileView: View {
                 Text(validationMessage)
                     .font(LuminaTheme.Typography.caption)
                     .foregroundColor(LuminaTheme.neonRed)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(LuminaTheme.Spacing.lg)
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.xl)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: validationMessage)
     }
 
     private var accountStatusCard: some View {
@@ -123,6 +135,7 @@ struct ProfileView: View {
             .opacity(hasChanges ? 1 : 0.45)
             .disabled(!hasChanges)
         }
+        .animation(.easeInOut(duration: 0.25), value: hasChanges)
     }
 
     private var userInitials: String {

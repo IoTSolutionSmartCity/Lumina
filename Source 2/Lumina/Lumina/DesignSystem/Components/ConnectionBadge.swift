@@ -31,12 +31,23 @@ struct ConnectionBadge: View {
 struct ConnectionStatusPill: View {
     let state: ConnectionState
 
+    @State private var isPulsing = false
+
+    private var isActivelyWorking: Bool {
+        switch state {
+        case .scanning, .connecting: return true
+        default: return false
+        }
+    }
+
     var body: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
-                .shadow(color: statusColor.opacity(0.6), radius: 4)
+                .shadow(color: statusColor.opacity(0.6), radius: isActivelyWorking && isPulsing ? 7 : 4)
+                .scaleEffect(isActivelyWorking && isPulsing ? 1.3 : 1.0)
+                .animation(isActivelyWorking ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true) : .default, value: isPulsing)
 
             if case .scanning = state {
                 ProgressView()
@@ -46,11 +57,14 @@ struct ConnectionStatusPill: View {
 
             Text(state.displayText)
                 .font(LuminaTheme.Typography.caption)
+                .contentTransition(.opacity)
         }
         .foregroundColor(.white)
         .padding(.horizontal, LuminaTheme.Spacing.md)
         .padding(.vertical, LuminaTheme.Spacing.sm)
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.full)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: state)
+        .onAppear { isPulsing = true }
     }
 
     private var statusColor: Color {

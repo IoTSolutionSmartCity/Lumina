@@ -96,12 +96,14 @@ struct SettingsView: View {
                         Circle()
                             .fill(device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed)
                             .frame(width: 8, height: 8)
+                            .shadow(color: (device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(0.6), radius: 3)
 
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.3))
                     }
                 }
+                .buttonStyle(.pressable)
                 .listRowBackground(LuminaTheme.darkSurface)
             }
 
@@ -115,6 +117,7 @@ struct SettingsView: View {
                         .foregroundColor(LuminaTheme.neonPurple)
                 }
             }
+            .buttonStyle(.pressable)
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("Devices")
@@ -132,6 +135,7 @@ struct SettingsView: View {
                         Circle()
                             .fill(LuminaTheme.primaryGradient)
                             .frame(width: 40, height: 40)
+                            .shadow(color: LuminaTheme.neonPurple.opacity(0.4), radius: 6)
 
                         Text(userInitials)
                             .font(LuminaTheme.Typography.headline)
@@ -160,6 +164,7 @@ struct SettingsView: View {
                 }
                 .foregroundColor(LuminaTheme.neonRed)
             }
+            .buttonStyle(.pressable)
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("Account")
@@ -294,6 +299,7 @@ struct DeviceDetailView: View {
                                 Spacer()
                             }
                         }
+                        .buttonStyle(.pressable)
                     }
                     .listRowBackground(LuminaTheme.darkSurface)
                 }

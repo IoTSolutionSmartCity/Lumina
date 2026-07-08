@@ -1,5 +1,21 @@
 import SwiftUI
 
+/// Shared tactile press feedback for every tappable control in the app.
+struct PressableButtonStyle: ButtonStyle {
+    var scale: CGFloat = 0.96
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .brightness(configuration.isPressed ? -0.06 : 0)
+            .animation(.spring(response: 0.28, dampingFraction: 0.62), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == PressableButtonStyle {
+    static var pressable: PressableButtonStyle { PressableButtonStyle() }
+}
+
 struct NeonButton: View {
     let title: String
     let icon: String?
@@ -60,7 +76,7 @@ struct NeonButton: View {
             )
             .shadow(color: style.glowColor.opacity(0.5), radius: 12, x: 0, y: 4)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.pressable)
     }
 }
 
@@ -101,6 +117,6 @@ struct GlassButton: View {
                     )
             )
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.pressable)
     }
 }

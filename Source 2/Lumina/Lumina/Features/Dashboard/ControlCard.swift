@@ -5,6 +5,8 @@ struct ControlCard: View {
     @Binding var selectedColor: Color
     @Binding var isOn: Bool
 
+    @State private var isBreathing = false
+
     var body: some View {
         GlassCard {
             VStack(spacing: LuminaTheme.Spacing.lg) {
@@ -16,18 +18,18 @@ struct ControlCard: View {
                         colorSection
                     }
                     .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .bottom)),
-                        removal: .opacity
+                        insertion: .opacity.combined(with: .move(edge: .bottom)).combined(with: .scale(scale: 0.96, anchor: .top)),
+                        removal: .opacity.combined(with: .scale(scale: 0.98, anchor: .top))
                     ))
                 }
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isOn)
+            .animation(.spring(response: 0.42, dampingFraction: 0.75), value: isOn)
         }
     }
 
     private var powerToggle: some View {
         Button {
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.7)) {
                 isOn.toggle()
             }
             HapticManager.shared.mediumImpact()
@@ -37,7 +39,8 @@ struct ControlCard: View {
                     Circle()
                         .fill(isOn ? LuminaTheme.neonGreen.opacity(0.22) : LuminaTheme.neonRed.opacity(0.14))
                         .frame(width: 56, height: 56)
-                        .shadow(color: (isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(isOn ? 0.75 : 0.25), radius: isOn ? 18 : 8)
+                        .shadow(color: (isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(isOn ? (isBreathing ? 0.9 : 0.6) : 0.25), radius: isOn ? (isBreathing ? 22 : 14) : 8)
+                        .animation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true), value: isBreathing)
 
                     GlowIcon(
                         systemName: "power",
@@ -45,12 +48,15 @@ struct ControlCard: View {
                         size: 26,
                         glowRadius: isOn ? 12 : 3
                     )
+                    .rotationEffect(.degrees(isOn ? 0 : -90))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.65), value: isOn)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(isOn ? "Lamp is On" : "Lamp is Off")
                         .font(LuminaTheme.Typography.title2)
                         .foregroundColor(.white)
+                        .contentTransition(.opacity)
                     Text(isOn ? "Tap to turn off" : "Tap to wake your lamp")
                         .font(LuminaTheme.Typography.caption)
                         .foregroundColor(.white.opacity(0.55))
@@ -65,6 +71,7 @@ struct ControlCard: View {
                     .padding(.vertical, LuminaTheme.Spacing.sm)
                     .background((isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(0.85))
                     .clipShape(Capsule())
+                    .contentTransition(.opacity)
             }
             .padding(LuminaTheme.Spacing.md)
             .background(
@@ -75,8 +82,10 @@ struct ControlCard: View {
                             .stroke(isOn ? LuminaTheme.neonGreen.opacity(0.55) : Color.white.opacity(0.14), lineWidth: 1)
                     )
             )
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isOn)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.pressable)
+        .onAppear { isBreathing = true }
     }
 
     private var brightnessControl: some View {

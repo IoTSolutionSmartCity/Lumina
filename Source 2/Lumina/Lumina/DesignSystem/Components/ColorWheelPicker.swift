@@ -109,7 +109,9 @@ struct ColorWheelPicker: View {
                 Image(systemName: containsCurrentColor ? "checkmark.circle.fill" : "plus.circle.fill")
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundColor(containsCurrentColor ? LuminaTheme.neonGreen : LuminaTheme.neonPurple)
+                    .contentTransition(.symbolEffect(.replace))
             }
+            .buttonStyle(.pressable)
 
             Button {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
@@ -119,7 +121,9 @@ struct ColorWheelPicker: View {
                 Image(systemName: isEditingPresets ? "checkmark" : "slider.horizontal.3")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white.opacity(0.65))
+                    .contentTransition(.symbolEffect(.replace))
             }
+            .buttonStyle(.pressable)
         }
     }
 
@@ -136,6 +140,7 @@ struct ColorWheelPicker: View {
                     }
                     .font(LuminaTheme.Typography.captionBold)
                     .foregroundColor(LuminaTheme.neonPurple)
+                    .buttonStyle(.pressable)
                 }
             }
 
@@ -154,8 +159,12 @@ struct ColorWheelPicker: View {
                                     )
                                 )
                                 .shadow(color: color.opacity(0.6), radius: selectedColor.hexString == hex ? 8 : 0)
+                                .scaleEffect(selectedColor.hexString == hex ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedColor.hexString == hex)
                                 .onTapGesture {
-                                    selectedColor = color
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        selectedColor = color
+                                    }
                                     onColorChange?(color)
                                     HapticManager.shared.lightImpact()
                                 }
@@ -169,12 +178,15 @@ struct ColorWheelPicker: View {
                                         .foregroundColor(LuminaTheme.neonRed)
                                         .background(Circle().fill(LuminaTheme.deepNavy))
                                 }
+                                .buttonStyle(.pressable)
                                 .offset(x: 5, y: -5)
+                                .transition(.scale.combined(with: .opacity))
                             }
                         }
                     }
                 }
                 .padding(.vertical, 6)
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: presetHexColors)
             }
         }
     }

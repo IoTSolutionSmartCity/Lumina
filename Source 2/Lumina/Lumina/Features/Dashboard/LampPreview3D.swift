@@ -5,6 +5,8 @@ struct LampPreview3D: View {
     var brightness: Double
     var isOn: Bool
 
+    @State private var isBreathing = false
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xxl)
@@ -20,6 +22,7 @@ struct LampPreview3D: View {
                             lineWidth: 1
                         )
                 )
+                .animation(.easeInOut(duration: 0.5), value: color)
 
             lampGlow
 
@@ -56,10 +59,14 @@ struct LampPreview3D: View {
                 Text(isOn ? "\(Int(brightness * 100))% brightness" : "Lamp off")
                     .font(LuminaTheme.Typography.captionBold)
                     .foregroundColor(.white.opacity(0.6))
+                    .contentTransition(.numericText())
                     .padding(.bottom, LuminaTheme.Spacing.md)
             }
         }
         .frame(height: 300)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isOn)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: brightness)
+        .onAppear { isBreathing = true }
     }
 
     private var lampShade: some View {
@@ -82,14 +89,15 @@ struct LampPreview3D: View {
                 .frame(width: 150, height: 92)
                 .overlay(Trapezoid().stroke(Color.white.opacity(0.18), lineWidth: 1))
         }
+        .animation(.easeInOut(duration: 0.4), value: color)
     }
 
     private var lampGlow: some View {
         Circle()
             .fill(RadialGradient(
                 colors: [
-                    color.opacity(isOn ? 0.55 * brightness : 0),
-                    color.opacity(isOn ? 0.16 * brightness : 0),
+                    color.opacity(isOn ? (isBreathing ? 0.62 : 0.48) * brightness : 0),
+                    color.opacity(isOn ? (isBreathing ? 0.2 : 0.14) * brightness : 0),
                     .clear
                 ],
                 center: .center,
@@ -98,6 +106,8 @@ struct LampPreview3D: View {
             ))
             .frame(width: 260, height: 260)
             .blur(radius: 6)
+            .animation(isOn ? .easeInOut(duration: 2.2).repeatForever(autoreverses: true) : .easeOut(duration: 0.4), value: isBreathing)
+            .animation(.easeInOut(duration: 0.4), value: color)
     }
 }
 
