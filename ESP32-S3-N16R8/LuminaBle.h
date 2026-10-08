@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <BLE2902.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
@@ -13,6 +14,7 @@ namespace LuminaBle {
 static constexpr const char *deviceName = "Lumina ESP32S3 Lamp";
 static constexpr const char *serviceUUID = "4c554d49-4e41-4000-8000-000000000001";
 static constexpr const char *commandUUID = "4c554d49-4e41-4000-8000-000000000002";
+static constexpr const char *scanUUID = "4c554d49-4e41-4000-8000-000000000003";
 
 inline portMUX_TYPE &lock() {
   static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
@@ -62,6 +64,20 @@ class CommandCallbacks : public BLECharacteristicCallbacks {
   }
 };
 
+inline BLECharacteristic *&scanCharacteristic() {
+  static BLECharacteristic *characteristic = nullptr;
+  return characteristic;
+}
+
+inline void publishScan(const uint8_t *data, size_t length) {
+  BLECharacteristic *characteristic = scanCharacteristic();
+  if (characteristic == nullptr || data == nullptr || length == 0) {
+    return;
+  }
+  characteristic->setValue(const_cast<uint8_t *>(data), length);
+  characteristic->notify();
+}
+
 inline void begin() {
   BLEDevice::init(deviceName);
   BLEDevice::setMTU(247);
@@ -77,6 +93,13 @@ inline void begin() {
     BLECharacteristic::PROPERTY_WRITE
   );
   command->setCallbacks(&commandCallbacks);
+
+  BLECharacteristic *scan = service->createCharacteristic(
+    scanUUID,
+    BLECharacteristic::PROPERTY_NOTIFY
+  );
+  scan->addDescriptor(new BLE2902());
+  scanCharacteristic() = scan;
   service->start();
 
   BLEAdvertising *advertising = BLEDevice::getAdvertising();

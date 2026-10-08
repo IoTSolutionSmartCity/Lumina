@@ -15,6 +15,7 @@
 #include "SystemState.h"
 #include "StatusLed.h"
 #include "../../ESP32-S3-N16R8/LuminaBle.h"
+#include "../../ESP32-S3-N16R8/LuminaWifiScan.h"
 
 // ---- Onboard status LED configuration ----
 // The onboard LED on ESP32S3-N16R8 is a single addressable WS2812 on GPIO 48.
@@ -319,6 +320,8 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     homeSpan.setWifiCredentials(command.ssid, command.password);
     delay(400);
     ESP.restart();
+  } else if (command.kind == LuminaProtocol::Command::scan) {
+    publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::color) {
     applyRgb(command.red, command.green, command.blue);
   }

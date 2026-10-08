@@ -25,6 +25,7 @@ enum LampCommand: Equatable {
 
     static let colorOpcode: UInt8 = 0x02
     static let wifiOpcode: UInt8 = 0x10
+    static let scanOpcode: UInt8 = 0x11
 
     var data: Data? {
         switch self {
@@ -48,6 +49,7 @@ enum LampLinkError: LocalizedError {
     case notConnected
     case notReady
     case timedOut
+    case scanUnavailable
     case failed(String)
 
     var errorDescription: String? {
@@ -56,8 +58,31 @@ enum LampLinkError: LocalizedError {
         case .notConnected: return "The lamp is not connected."
         case .notReady: return "The lamp is not ready for commands yet."
         case .timedOut: return "The lamp did not confirm. Try again."
+        case .scanUnavailable: return "Upload the latest lamp firmware, then scan again."
         case .failed(let message): return message
         }
+    }
+}
+
+struct LampWifiNetwork: Identifiable, Equatable {
+    let ssid: String
+    let rssi: Int
+    let secured: Bool
+    let isLast: Bool
+
+    var id: String { ssid }
+
+    static func parse(_ data: Data) -> LampWifiNetwork? {
+        guard data.count >= 4, data[0] == LampCommand.scanOpcode else { return nil }
+        let length = Int(data[3])
+        guard data.count >= 4 + length else { return nil }
+        let ssid = String(data: data.subdata(in: 4..<(4 + length)), encoding: .utf8) ?? ""
+        return LampWifiNetwork(
+            ssid: ssid,
+            rssi: Int(Int8(bitPattern: data[2])),
+            secured: data[1] & 0x01 != 0,
+            isLast: data[1] & 0x80 != 0
+        )
     }
 }
 
@@ -88,6 +113,7 @@ final class BluetoothManager: NSObject {
 
     static let serviceUUID = CBUUID(string: "4C554D49-4E41-4000-8000-000000000001")
     static let commandUUID = CBUUID(string: "4C554D49-4E41-4000-8000-000000000002")
+    static let scanUUID = CBUUID(string: "4C554D49-4E41-4000-8000-000000000003")
     static let targetDeviceName = "Lumina ESP32S3 Lamp"
     static let homeKitSetupCode = "466-37-726"
 
@@ -96,10 +122,13 @@ final class BluetoothManager: NSObject {
     var isScanning: Bool = false
     var connectedDevice: DiscoveredPeripheral?
     var problemMessage: String?
+    var nearbyNetworks: [LampWifiNetwork] = []
 
     private var centralManager: CBCentralManager!
     private var connectedPeripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
+    private var scanCharacteristic: CBCharacteristic?
+    private var wifiScanFinished = false
     private var outgoing: [Outgoing] = []
     private var activeWrite: Outgoing?
     private var activeToken: UUID?
@@ -209,6 +238,27 @@ final class BluetoothManager: NSObject {
         guard let data = LampCommand.setWifi(ssid: ssid, password: password).data else {
             throw LampLinkError.invalidCommand
         }
+        try await write(data)
+    }
+
+    func requestWifiScan() async throws {
+        nearbyNetworks = []
+        wifiScanFinished = false
+        if scanCharacteristic == nil {
+            _ = await waitForCharacteristic()
+        }
+        guard scanCharacteristic != nil else { throw LampLinkError.scanUnavailable }
+        try await write(Data([LampCommand.scanOpcode]))
+        let deadline = Date().addingTimeInterval(12)
+        while !wifiScanFinished && Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        if !wifiScanFinished && nearbyNetworks.isEmpty {
+            throw LampLinkError.timedOut
+        }
+    }
+
+    private func write(_ data: Data) async throws {
         guard connectionState == .connected else { throw LampLinkError.notConnected }
         if writeCharacteristic == nil {
             let ready = await waitForCharacteristic()
@@ -217,6 +267,22 @@ final class BluetoothManager: NSObject {
         try await withCheckedThrowingContinuation { continuation in
             outgoing.append(Outgoing(data: data, continuation: continuation))
             pump()
+        }
+    }
+
+    private func noteScan(_ network: LampWifiNetwork) {
+        if !network.ssid.isEmpty {
+            if let index = nearbyNetworks.firstIndex(where: { $0.ssid == network.ssid }) {
+                if network.rssi > nearbyNetworks[index].rssi {
+                    nearbyNetworks[index] = network
+                }
+            } else {
+                nearbyNetworks.append(network)
+            }
+            nearbyNetworks.sort { $0.rssi > $1.rssi }
+        }
+        if network.isLast {
+            wifiScanFinished = true
         }
     }
 
@@ -320,6 +386,7 @@ extension BluetoothManager: CBCentralManagerDelegate {
             connectedPeripheral = nil
             connectedDevice = nil
             writeCharacteristic = nil
+            scanCharacteristic = nil
             failQueued(LampLinkError.notConnected)
             if wantsScan { startScanning() }
         }
@@ -331,7 +398,7 @@ extension BluetoothManager: CBPeripheralDelegate {
         Task { @MainActor in
             guard let services = peripheral.services else { return }
             for service in services where service.uuid == Self.serviceUUID {
-                peripheral.discoverCharacteristics([Self.commandUUID], for: service)
+                peripheral.discoverCharacteristics([Self.commandUUID, Self.scanUUID], for: service)
             }
         }
     }
@@ -339,8 +406,13 @@ extension BluetoothManager: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         Task { @MainActor in
             if let characteristics = service.characteristics {
-                for characteristic in characteristics where characteristic.uuid == Self.commandUUID {
-                    writeCharacteristic = characteristic
+                for characteristic in characteristics {
+                    if characteristic.uuid == Self.commandUUID {
+                        writeCharacteristic = characteristic
+                    } else if characteristic.uuid == Self.scanUUID {
+                        scanCharacteristic = characteristic
+                        peripheral.setNotifyValue(true, for: characteristic)
+                    }
                 }
             }
             pump()
@@ -359,6 +431,14 @@ extension BluetoothManager: CBPeripheralDelegate {
                 active.finish(.success(()))
             }
             pump()
+        }
+    }
+
+    nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        let value = characteristic.value
+        Task { @MainActor in
+            guard error == nil, let value, let network = LampWifiNetwork.parse(value) else { return }
+            noteScan(network)
         }
     }
 }

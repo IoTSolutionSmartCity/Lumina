@@ -26,6 +26,18 @@ int main() {
   const uint8_t truncated[] = {0x10, 4, 'H', 'o'};
   assert(LuminaProtocol::parse(truncated, sizeof(truncated)).kind == LuminaProtocol::Command::invalid);
 
+  const uint8_t scan[] = {0x11};
+  assert(LuminaProtocol::parse(scan, sizeof(scan)).kind == LuminaProtocol::Command::scan);
+
+  uint8_t packet[40];
+  const size_t length = LuminaProtocol::encodeScanResult(packet, sizeof(packet), "Home", -40, true, true);
+  assert(length == 8);
+  assert(packet[0] == 0x11);
+  assert(packet[1] == 0x81);
+  assert(static_cast<int8_t>(packet[2]) == -40);
+  assert(packet[3] == 4);
+  assert(std::memcmp(packet + 4, "Home", 4) == 0);
+
   std::cout << "lumina protocol ok\n";
   return 0;
 }

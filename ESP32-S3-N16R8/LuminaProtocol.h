@@ -7,15 +7,19 @@
 // Shared by the ESP32 firmware and the Lumina app.
 // Color:  0x02, R, G, B, brightness, power
 // Wi-Fi:  0x10, ssidLen, ssid..., passwordLen, password...
+// Scan:   0x11 from the app. The lamp replies on the scan characteristic:
+//         0x11, flags, rssi, ssidLen, ssid...
+//         flags bit 0 = password required, bit 7 = last network in this scan.
 namespace LuminaProtocol {
 
 static constexpr uint8_t colorCommand = 0x02;
 static constexpr uint8_t wifiCommand = 0x10;
+static constexpr uint8_t scanCommand = 0x11;
 static constexpr size_t maxSsid = 32;
 static constexpr size_t maxPassword = 64;
 
 struct Command {
-  enum Kind { invalid, color, wifi } kind;
+  enum Kind { invalid, color, wifi, scan } kind;
   uint8_t red;
   uint8_t green;
   uint8_t blue;
@@ -52,6 +56,11 @@ inline Command parse(const uint8_t *data, size_t length) {
     return command;
   }
 
+  if (data[0] == scanCommand) {
+    command.kind = Command::scan;
+    return command;
+  }
+
   if (data[0] == wifiCommand && length >= 3) {
     const size_t ssidLength = data[1];
     if (ssidLength == 0 || ssidLength > maxSsid || length < 3 + ssidLength) {
@@ -69,6 +78,28 @@ inline Command parse(const uint8_t *data, size_t length) {
   }
 
   return command;
+}
+
+inline size_t encodeScanResult(
+  uint8_t *out,
+  size_t capacity,
+  const char *ssid,
+  int8_t rssi,
+  bool secured,
+  bool last
+) {
+  const size_t ssidLength = ssid == nullptr ? 0 : strnlen(ssid, maxSsid);
+  if (out == nullptr || capacity < 4 + ssidLength) {
+    return 0;
+  }
+  out[0] = scanCommand;
+  out[1] = static_cast<uint8_t>((secured ? 0x01 : 0x00) | (last ? 0x80 : 0x00));
+  out[2] = static_cast<uint8_t>(rssi);
+  out[3] = static_cast<uint8_t>(ssidLength);
+  if (ssidLength > 0) {
+    memcpy(out + 4, ssid, ssidLength);
+  }
+  return 4 + ssidLength;
 }
 
 }  // namespace LuminaProtocol

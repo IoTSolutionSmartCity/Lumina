@@ -11,6 +11,7 @@
 #include <nvs.h>
 #include "HomeSpan.h"
 #include "LuminaBle.h"
+#include "LuminaWifiScan.h"
 
 // ---- Board LED configuration ----
 // GPIO 48 is common for the ESP32-S3 built-in RGB/status LED on many boards.
@@ -283,6 +284,8 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     homeSpan.setWifiCredentials(command.ssid, command.password);
     delay(400);
     ESP.restart();
+  } else if (command.kind == LuminaProtocol::Command::scan) {
+    publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::color) {
     applyRgb(command.red, command.green, command.blue);
   }
