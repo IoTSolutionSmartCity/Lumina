@@ -1,4 +1,4 @@
-#include "../LuminaProtocol.h"
+#include "../esp32s3_homekit_builtin_led/LuminaProtocol.h"
 
 #include <cassert>
 #include <cstring>

@@ -3,6 +3,15 @@ import Security
 
 enum WifiPasswordStore {
     private static let service = "LuminaWifi"
+    private static let chosenKey = "luminaWifiChosen"
+
+    static var hasChosen: Bool {
+        UserDefaults.standard.bool(forKey: chosenKey)
+    }
+
+    static func markChosen() {
+        UserDefaults.standard.set(true, forKey: chosenKey)
+    }
 
     static func password(for ssid: String) -> String? {
         let query: [String: Any] = [

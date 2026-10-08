@@ -48,8 +48,10 @@ struct OnboardingView: View {
                         .foregroundColor(.white.opacity(0.6))
                 }
             }
-            .navigationDestination(isPresented: $viewModel.showWifiSetup) {
-                WifiSetupView(onFinished: finish)
+            .fullScreenCover(isPresented: $viewModel.showWifiSetup) {
+                NavigationStack {
+                    WifiSetupView(onFinished: finish)
+                }
             }
         }
         .preferredColorScheme(.dark)
@@ -64,9 +66,9 @@ struct OnboardingView: View {
             viewModel.stopScanning()
         }
         .onChange(of: viewModel.heroDevice?.id) { _, id in
-            if id != nil {
-                HapticManager.shared.lightImpact()
-            }
+            guard id != nil else { return }
+            HapticManager.shared.lightImpact()
+            viewModel.connectToHero()
         }
     }
 
@@ -76,7 +78,7 @@ struct OnboardingView: View {
                 .font(LuminaTheme.Typography.display)
                 .foregroundStyle(LuminaTheme.primaryGradient)
 
-            Text(viewModel.problemMessage ?? "Power on the lamp. When it lights up here, tap it.")
+            Text(viewModel.problemMessage ?? "Power on the lamp. It connects on its own, then you choose the Wi-Fi.")
                 .font(LuminaTheme.Typography.subheadline)
                 .foregroundColor(.white.opacity(0.65))
                 .multilineTextAlignment(.center)

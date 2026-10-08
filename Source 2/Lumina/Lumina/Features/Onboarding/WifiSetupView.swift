@@ -339,6 +339,7 @@ struct WifiSetupView: View {
         Task {
             do {
                 try await BluetoothManager.shared.sendWifi(ssid: network, password: password)
+                WifiPasswordStore.markChosen()
                 if remember {
                     WifiPasswordStore.save(password, for: network)
                 }

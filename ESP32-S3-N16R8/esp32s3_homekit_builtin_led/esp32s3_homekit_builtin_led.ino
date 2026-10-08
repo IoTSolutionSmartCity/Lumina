@@ -12,18 +12,7 @@
 #include "HomeSpan.h"
 #include "LuminaBle.h"
 #include "LuminaWifiScan.h"
-
-// ---- Board LED configuration ----
-// GPIO 48 is common for the ESP32-S3 built-in RGB/status LED on many boards.
-#ifndef LED_PIN
-  #ifdef LED_BUILTIN
-    #define LED_PIN LED_BUILTIN
-  #else
-    #define LED_PIN 48
-  #endif
-#endif
-
-#define LED_ACTIVE_LOW 0
+#include "BoardLed.h"
 
 // ---- External RGB lamp PWM pins ----
 // GPIO 4 red, GPIO 5 green, GPIO 6 blue. GPIO 7 is not used.
@@ -81,19 +70,10 @@ uint16_t dutyFromByte(uint8_t value) {
   return static_cast<uint16_t>((static_cast<uint32_t>(value) * PWM_MAX_DUTY) / 255);
 }
 
-void setStatusLed(bool on) {
-  if (LED_ACTIVE_LOW) {
-    digitalWrite(LED_PIN, on ? LOW : HIGH);
-  } else {
-    digitalWrite(LED_PIN, on ? HIGH : LOW);
-  }
-}
-
 void applyRgb(uint8_t red, uint8_t green, uint8_t blue) {
   writePwmOutput(RED_OUTPUT, dutyFromByte(red));
   writePwmOutput(GREEN_OUTPUT, dutyFromByte(green));
   writePwmOutput(BLUE_OUTPUT, dutyFromByte(blue));
-  setStatusLed(red || green || blue);
 }
 
 void hsvToRgb(float hue, float saturation, float value, float &red, float &green, float &blue) {
@@ -205,7 +185,6 @@ class RgbwLamp : public Service::LightBulb {
       saturation = new Characteristic::Saturation(0);
       new Characteristic::Name("Lumina Lamp");
 
-      pinMode(LED_PIN, OUTPUT);
       attachPwmOutput(RED_OUTPUT);
       attachPwmOutput(GREEN_OUTPUT);
       attachPwmOutput(BLUE_OUTPUT);
@@ -249,7 +228,8 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  if (!wifiCameFromApp()) {
+  BoardLed::wifiConfigured = wifiCameFromApp();
+  if (!BoardLed::wifiConfigured) {
     forgetLeftoverWifi();
     Serial.println("BLE first. Waiting for the Lumina app to send Wi-Fi.");
   }
@@ -282,8 +262,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     Serial.println(command.ssid);
     markWifiFromApp();
     homeSpan.setWifiCredentials(command.ssid, command.password);
-    delay(400);
-    ESP.restart();
+    BoardLed::celebrateWifi();
   } else if (command.kind == LuminaProtocol::Command::scan) {
     publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::color) {
@@ -292,6 +271,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
 }
 
 void loop() {
+  BoardLed::update();
   LuminaProtocol::Command command;
   if (LuminaBle::takeEvent(command)) {
     handleBleCommand(command);

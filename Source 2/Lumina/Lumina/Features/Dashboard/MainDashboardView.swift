@@ -53,6 +53,11 @@ struct MainDashboardView: View {
         .sheet(isPresented: $viewModel.showOnboarding) {
             OnboardingView(isOnboarded: .constant(true))
         }
+        .fullScreenCover(isPresented: $viewModel.showWifiSetup) {
+            NavigationStack {
+                WifiSetupView(onFinished: { viewModel.showWifiSetup = false })
+            }
+        }
     }
 
     private var headerSection: some View {

@@ -10,6 +10,7 @@ final class DashboardViewModel {
     var selectedColor: Color = LuminaTheme.neonPurple
     var isOn: Bool = true
     var showOnboarding: Bool = false
+    var showWifiSetup: Bool = false
 
     private let bluetooth = BluetoothManager.shared
     private let homeKitManager = HomeKitManager()
@@ -36,6 +37,9 @@ final class DashboardViewModel {
         connectionState = bluetooth.connectionState
         if let discovered = bluetooth.connectedDevice {
             remember(discovered)
+        }
+        if !WifiPasswordStore.hasChosen {
+            showWifiSetup = true
         }
     }
 

@@ -27,7 +27,7 @@ final class OnboardingViewModel {
     }
 
     func connectToHero() {
-        guard let hero = heroDevice, !isConnecting else { return }
+        guard let hero = heroDevice, !isConnecting, !showWifiSetup else { return }
         isConnecting = true
         Task {
             await bluetooth.connect(to: hero)

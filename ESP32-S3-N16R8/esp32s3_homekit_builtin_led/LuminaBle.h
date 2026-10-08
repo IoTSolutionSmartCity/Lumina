@@ -47,9 +47,28 @@ inline void handleWrite(const uint8_t *data, size_t length) {
   portEXIT_CRITICAL(&lock());
 }
 
+inline volatile bool &phoneConnectedFlag() {
+  static volatile bool connected = false;
+  return connected;
+}
+
+inline bool phoneConnected() {
+  return phoneConnectedFlag();
+}
+
+inline void setPhoneConnected(bool connected) {
+  phoneConnectedFlag() = connected;
+}
+
 class ServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer *server) override {
+    (void)server;
+    setPhoneConnected(true);
+  }
+
   void onDisconnect(BLEServer *server) override {
     (void)server;
+    setPhoneConnected(false);
     BLEDevice::startAdvertising();
   }
 };

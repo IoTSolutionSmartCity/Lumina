@@ -3,7 +3,7 @@
   - Bluetooth first: the Lumina app finds the lamp, sends color, then Wi-Fi
   - Saved Wi-Fi lets Apple Home / a HomePod mini pair over HomeKit
   - RGB PWM on GPIO 4, 5, and 6. There is no white channel.
-  - HomeSpan still opens Lumina-Setup when no Wi-Fi is stored
+  - The app chooses Wi-Fi after Bluetooth connects
 */
 
 #include <Arduino.h>
@@ -12,10 +12,9 @@
 #include <nvs.h>
 #include "HomeSpan.h"
 #include "LuminaWifi.h"
-#include "SystemState.h"
-#include "StatusLed.h"
-#include "../../ESP32-S3-N16R8/LuminaBle.h"
-#include "../../ESP32-S3-N16R8/LuminaWifiScan.h"
+#include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaBle.h"
+#include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaWifiScan.h"
+#include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/BoardLed.h"
 
 // ---- Onboard status LED configuration ----
 // The onboard LED on ESP32S3-N16R8 is a single addressable WS2812 on GPIO 48.
@@ -213,35 +212,6 @@ class RgbwLamp : public Service::LightBulb {
 // reboot into an already-paired device) rather than a separately tracked
 // state machine that could drift out of sync.
 void onHomeSpanStatus(HS_STATUS status) {
-  switch (status) {
-    case HS_WIFI_NEEDED:
-    case HS_WIFI_SCANNING:
-    case HS_AP_STARTED:
-    case HS_AP_CONNECTED:
-      StatusLed::setState(SystemState::AP_MODE);
-      break;
-
-    case HS_WIFI_CONNECTING:
-    case HS_ETH_CONNECTING:
-      StatusLed::setState(SystemState::CONNECTING);
-      break;
-
-    case HS_PAIRING_NEEDED:
-      StatusLed::setState(SystemState::HOMEKIT_PAIRING);
-      break;
-
-    case HS_PAIRED:
-    case HS_CONNECTED:
-      StatusLed::setState(SystemState::READY);
-      break;
-
-    default:
-      // Transient states (Command Mode, OTA, reboot, factory reset, AP
-      // teardown) intentionally leave the current pattern running so the
-      // indicator doesn't flicker between unrelated states.
-      break;
-  }
-
   Serial.printf("HomeSpan status -> %s\n", homeSpan.statusString(status));
 }
 
@@ -276,18 +246,13 @@ void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 5000) delay(10);  // wait for USB-CDC monitor, cap so headless boots don't hang
 
-  if (!wifiCameFromApp()) {
+  BoardLed::wifiConfigured = wifiCameFromApp();
+  if (!BoardLed::wifiConfigured) {
     forgetLeftoverWifi();
     Serial.println("BLE first. Waiting for the Lumina app to send Wi-Fi.");
   }
 
   LuminaBle::begin();
-
-  // Sane default until HomeSpan reports its first real status: HomeSpan
-  // boots into HS_INITIAL_SETUP, which does not itself trigger the status
-  // callback, and AP_MODE is the correct steady-state for a fresh device.
-  StatusLed::begin(STATUS_LED_PIN);
-  StatusLed::setState(SystemState::AP_MODE);
 
   homeSpan.setPairingCode("46637726");
   homeSpan.setControlPin(0);
@@ -318,8 +283,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     Serial.println(command.ssid);
     markWifiFromApp();
     homeSpan.setWifiCredentials(command.ssid, command.password);
-    delay(400);
-    ESP.restart();
+    BoardLed::celebrateWifi();
   } else if (command.kind == LuminaProtocol::Command::scan) {
     publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::color) {
@@ -328,7 +292,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
 }
 
 void loop() {
-  StatusLed::update();
+  BoardLed::update();
   LuminaProtocol::Command command;
   if (LuminaBle::takeEvent(command)) {
     handleBleCommand(command);
