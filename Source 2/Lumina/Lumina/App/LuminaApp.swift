@@ -23,6 +23,9 @@ struct LuminaApp: App {
             }
             .preferredColorScheme(.dark)
             .environment(session)
+            .overlay {
+                LuminaIsland()
+            }
         }
     }
 }

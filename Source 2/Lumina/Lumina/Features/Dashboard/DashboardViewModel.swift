@@ -4,7 +4,6 @@ import SwiftUI
 @MainActor
 @Observable
 final class DashboardViewModel {
-    var connectionState: ConnectionState = .disconnected
     var connectedDevice: LampDevice?
     var brightness: Double = 0.75
     var selectedColor: Color = LuminaTheme.neonPurple
@@ -16,13 +15,15 @@ final class DashboardViewModel {
     private let homeKitManager = HomeKitManager()
     private let deviceRepository = DeviceRepository.shared
     private var pendingUpdateTask: Task<Void, Never>?
+    private var colorPulseTask: Task<Void, Never>?
+
+    var connectionState: ConnectionState { bluetooth.connectionState }
 
     func onAppear() {
         if deviceRepository.devices.isEmpty {
             showOnboarding = true
         } else if let first = deviceRepository.devices.first {
             connectedDevice = first
-            connectionState = .disconnected
             brightness = first.brightness
             selectedColor = first.color
             isOn = first.isOn
@@ -36,8 +37,7 @@ final class DashboardViewModel {
         if let id = deviceRepository.selectedDevice?.id ?? deviceRepository.devices.first?.id {
             await bluetooth.reconnect(to: id)
         }
-        connectionState = bluetooth.connectionState
-        if let discovered = bluetooth.connectedDevice {
+        if bluetooth.connectionState == .connected, let discovered = bluetooth.connectedDevice {
             remember(discovered)
         }
         if !WifiPasswordStore.hasChosen {
@@ -65,6 +65,15 @@ final class DashboardViewModel {
             deviceRepository.addDevice(device)
         }
         deviceRepository.selectDevice(device)
+    }
+
+    func scheduleColorPulse() {
+        colorPulseTask?.cancel()
+        colorPulseTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(280))
+            guard let self, !Task.isCancelled else { return }
+            IslandCenter.shared.pulse(selectedColor)
+        }
     }
 
     func sendUpdate(debounced: Bool = true) {
@@ -101,9 +110,6 @@ final class DashboardViewModel {
             power: isOn,
             debugLed: UserDefaults.standard.bool(forKey: "luminaDebugLed")
         ))
-        if connectionState != bluetooth.connectionState {
-            connectionState = bluetooth.connectionState
-        }
     }
 
     func applyFocusScene() {

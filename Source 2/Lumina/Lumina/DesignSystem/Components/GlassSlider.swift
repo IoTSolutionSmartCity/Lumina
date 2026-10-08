@@ -4,6 +4,7 @@ struct GlassSlider: View {
     @Binding var value: Double
     let icon: String
     var label: String?
+    var tint: Color = LuminaTheme.neonPurple
     var range: ClosedRange<Double> = 0...1
 
     @State private var isDragging = false
@@ -19,7 +20,7 @@ struct GlassSlider: View {
                 Spacer()
                 Image(systemName: icon)
                     .font(.system(size: 14))
-                    .foregroundColor(LuminaTheme.neonPurple)
+                    .foregroundColor(tint)
                 Text("\(Int(value * 100))%")
                     .font(LuminaTheme.Typography.captionBold)
                     .foregroundColor(.white)
@@ -32,14 +33,14 @@ struct GlassSlider: View {
                         .fill(Color.white.opacity(0.1))
 
                     RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.full)
-                        .fill(LuminaTheme.primaryGradient)
+                        .fill(tint)
                         .frame(width: geometry.size.width * value)
-                        .shadow(color: LuminaTheme.neonPurple.opacity(isDragging ? 0.55 : 0.25), radius: isDragging ? 8 : 4)
+                        .shadow(color: tint.opacity(isDragging ? 0.55 : 0.25), radius: isDragging ? 8 : 4)
 
                     Circle()
                         .fill(.white)
                         .frame(width: isDragging ? 24 : 20, height: isDragging ? 24 : 20)
-                        .shadow(color: LuminaTheme.neonPurple.opacity(0.6), radius: isDragging ? 10 : 6)
+                        .shadow(color: tint.opacity(0.6), radius: isDragging ? 10 : 6)
                         .offset(x: geometry.size.width * value - (isDragging ? 12 : 10))
                         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isDragging)
                 }

@@ -28,7 +28,9 @@ struct ColorWheelPicker: View {
                                     Color(hex: "0000FF"), Color(hex: "FF00FF"),
                                     Color(hex: "FF0000")
                                 ]),
-                                center: .center
+                                center: .center,
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
                             )
                         )
                         .overlay(
@@ -241,8 +243,7 @@ struct ColorWheelPicker: View {
         let normalizedHue = hue < 0 ? hue + 1 : hue
         let distance = sqrt(dx * dx + dy * dy)
         let saturation = min(max(distance / (wheelDiameter / 2), 0.02), 1.0)
-        let brightness = 1.0 - max(0, 0.18 - saturation) * 0.35
-        return Color(hue: normalizedHue, saturation: saturation, brightness: brightness)
+        return Color(hue: normalizedHue, saturation: saturation, brightness: 1)
     }
 
     private func adjustHue(by delta: Double) {

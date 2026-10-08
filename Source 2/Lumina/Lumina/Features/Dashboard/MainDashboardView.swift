@@ -13,9 +13,6 @@ struct MainDashboardView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: LuminaTheme.Spacing.lg) {
-                        ConnectionStatusPill(state: viewModel.connectionState)
-                            .padding(.top, LuminaTheme.Spacing.sm)
-
                         LampPreview3D(
                             color: viewModel.selectedColor,
                             brightness: viewModel.brightness,
@@ -45,6 +42,7 @@ struct MainDashboardView: View {
         }
         .onChange(of: viewModel.selectedColor.hexString) { _, _ in
             viewModel.sendUpdate()
+            viewModel.scheduleColorPulse()
         }
         .onChange(of: viewModel.isOn) { _, _ in
             viewModel.sendUpdate(debounced: false)

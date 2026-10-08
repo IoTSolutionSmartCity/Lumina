@@ -93,7 +93,8 @@ struct ControlCard: View {
         GlassSlider(
             value: $brightness,
             icon: "sun.max.fill",
-            label: "Brightness"
+            label: "Brightness",
+            tint: selectedColor
         )
     }
 
