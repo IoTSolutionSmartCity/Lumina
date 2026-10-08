@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppSession.self) private var session
     @State private var deviceRepository = DeviceRepository.shared
+    @State private var bluetooth = BluetoothManager.shared
+    @AppStorage("luminaDebugLed") private var debugLed = false
     @State private var showDeviceDetail: LampDevice?
     @State private var showAddDevice = false
     @State private var showSignOutConfirmation = false
@@ -15,6 +17,7 @@ struct SettingsView: View {
 
                 List {
                     devicesSection
+                    debugSection
                     accountSection
                     appSection
                     aboutSection
@@ -69,15 +72,17 @@ struct SettingsView: View {
                     showDeviceDetail = device
                 } label: {
                     HStack(spacing: LuminaTheme.Spacing.md) {
+                        let live = bluetooth.isLive(id: device.id)
                         ZStack {
                             Circle()
-                                .fill(device.isConnected ? LuminaTheme.neonGreen.opacity(0.2) : LuminaTheme.neonRed.opacity(0.2))
+                                .fill(live ? LuminaTheme.neonGreen.opacity(0.2) : Color.white.opacity(0.08))
                                 .frame(width: 40, height: 40)
 
                             GlowIcon(
                                 systemName: "lamp.desk.fill",
-                                color: device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed,
-                                size: 18
+                                color: live ? LuminaTheme.neonGreen : .white.opacity(0.7),
+                                size: 18,
+                                glowRadius: live ? 8 : 0
                             )
                         }
 
@@ -86,17 +91,19 @@ struct SettingsView: View {
                                 .font(LuminaTheme.Typography.headline)
                                 .foregroundColor(.white)
 
-                            Text(device.serialNumber)
+                            Text(live ? "Connected" : "Saved")
                                 .font(LuminaTheme.Typography.caption)
                                 .foregroundColor(.white.opacity(0.5))
                         }
 
                         Spacer()
 
-                        Circle()
-                            .fill(device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed)
-                            .frame(width: 8, height: 8)
-                            .shadow(color: (device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(0.6), radius: 3)
+                        if live {
+                            Circle()
+                                .fill(LuminaTheme.neonGreen)
+                                .frame(width: 8, height: 8)
+                                .accessibilityLabel("Connected now")
+                        }
 
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12))
@@ -172,6 +179,24 @@ struct SettingsView: View {
         }
     }
 
+    private var debugSection: some View {
+        Section {
+            Toggle("Onboard LED follows color", isOn: $debugLed)
+                .tint(LuminaTheme.neonPurple)
+                .foregroundColor(.white)
+                .onChange(of: debugLed) { _, _ in
+                    pushDebugColor()
+                }
+        } header: {
+            Text("Debug")
+                .foregroundColor(.white.opacity(0.5))
+        } footer: {
+            Text("When this is on, the LED on the ESP32-S3 board shows the color from the lamp controls. Turn it off to restore the red, orange, and green status light.")
+                .foregroundColor(.white.opacity(0.45))
+        }
+        .listRowBackground(LuminaTheme.darkSurface)
+    }
+
     private var appSection: some View {
         Section {
             HStack {
@@ -230,6 +255,21 @@ struct SettingsView: View {
         return initials.joined().uppercased()
     }
 
+    private func pushDebugColor() {
+        let lamp = deviceRepository.selectedDevice ?? deviceRepository.devices.first
+        let color = lamp?.color ?? LuminaTheme.neonPurple
+        let parts = color.components
+        let level = UInt8(min(255, max(0, Int(((lamp?.brightness ?? 1) * 255).rounded()))))
+        bluetooth.sendColor(.setColor(
+            red: parts.red,
+            green: parts.green,
+            blue: parts.blue,
+            brightness: level,
+            power: lamp?.isOn ?? true,
+            debugLed: debugLed
+        ))
+    }
+
     private func signOut() {
         session.signOut()
         dismiss()
@@ -240,6 +280,12 @@ struct DeviceDetailView: View {
     let device: LampDevice
     let onForget: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @State private var bluetooth = BluetoothManager.shared
+    @State private var isConnecting = false
+    @State private var statusMessage: String?
+    @State private var showWifi = false
+
+    private var isLive: Bool { bluetooth.isLive(id: device.id) }
 
     var body: some View {
         NavigationStack {
@@ -273,18 +319,67 @@ struct DeviceDetailView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         }
                         HStack {
-                            Text("Status")
+                            Text("Bluetooth")
                             Spacer()
                             HStack(spacing: 6) {
-                                Circle()
-                                    .fill(device.isConnected ? LuminaTheme.neonGreen : LuminaTheme.neonRed)
-                                    .frame(width: 8, height: 8)
-                                Text(device.isConnected ? "Connected" : "Disconnected")
+                                if isLive {
+                                    Circle()
+                                        .fill(LuminaTheme.neonGreen)
+                                        .frame(width: 8, height: 8)
+                                }
+                                Text(isLive ? "Connected" : "Not connected")
                                     .foregroundColor(.white.opacity(0.5))
                             }
                         }
                     } header: {
                         Text("Device Info")
+                    }
+                    .listRowBackground(LuminaTheme.darkSurface)
+
+                    Section {
+                        Button {
+                            Task { await connect() }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                if isConnecting {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Text(isLive ? "Connected" : "Scan and connect")
+                                }
+                                Spacer()
+                            }
+                            .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.pressable)
+                        .disabled(isConnecting || isLive)
+                        .foregroundColor(LuminaTheme.neonCyan)
+
+                        if let statusMessage {
+                            Text(statusMessage)
+                                .font(LuminaTheme.Typography.caption)
+                                .foregroundColor(.white.opacity(0.55))
+                        }
+
+                        Button {
+                            showWifi = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Change Wi-Fi")
+                                Spacer()
+                            }
+                            .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.pressable)
+                        .disabled(!isLive)
+                        .foregroundColor(isLive ? LuminaTheme.neonPurple : .white.opacity(0.35))
+                    } header: {
+                        Text("Connection")
+                    } footer: {
+                        Text("Green means this phone is linked to the lamp over Bluetooth right now. Tap Scan and connect, then change the Wi-Fi name and password.")
+                            .foregroundColor(.white.opacity(0.45))
                     }
                     .listRowBackground(LuminaTheme.darkSurface)
 
@@ -314,6 +409,25 @@ struct DeviceDetailView: View {
                         .foregroundColor(LuminaTheme.neonPurple)
                 }
             }
+            .sheet(isPresented: $showWifi) {
+                NavigationStack {
+                    WifiSetupView(onFinished: { showWifi = false })
+                }
+            }
+        }
+    }
+
+    private func connect() async {
+        isConnecting = true
+        statusMessage = nil
+        await bluetooth.reconnect(to: device.id)
+        isConnecting = false
+        if bluetooth.isLive(id: device.id) {
+            statusMessage = nil
+            HapticManager.shared.success()
+        } else {
+            statusMessage = bluetooth.problemMessage ?? "The lamp is not nearby."
+            HapticManager.shared.error()
         }
     }
 }

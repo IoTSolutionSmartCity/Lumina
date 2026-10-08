@@ -34,7 +34,6 @@ struct MainDashboardView: View {
                         Spacer(minLength: LuminaTheme.Spacing.xxl)
                     }
                     .padding(.horizontal, LuminaTheme.Spacing.lg)
-                    .animation(.spring(response: 0.45, dampingFraction: 0.8), value: viewModel.connectionState)
                 }
             }
         }

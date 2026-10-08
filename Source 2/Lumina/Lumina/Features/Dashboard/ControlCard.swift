@@ -5,8 +5,6 @@ struct ControlCard: View {
     @Binding var selectedColor: Color
     @Binding var isOn: Bool
 
-    @State private var isBreathing = false
-
     var body: some View {
         GlassCard {
             VStack(spacing: LuminaTheme.Spacing.lg) {
@@ -39,8 +37,7 @@ struct ControlCard: View {
                     Circle()
                         .fill(isOn ? LuminaTheme.neonGreen.opacity(0.22) : LuminaTheme.neonRed.opacity(0.14))
                         .frame(width: 56, height: 56)
-                        .shadow(color: (isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(isOn ? (isBreathing ? 0.9 : 0.6) : 0.25), radius: isOn ? (isBreathing ? 22 : 14) : 8)
-                        .animation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true), value: isBreathing)
+                        .shadow(color: (isOn ? LuminaTheme.neonGreen : LuminaTheme.neonRed).opacity(isOn ? 0.45 : 0.2), radius: isOn ? 10 : 4)
 
                     GlowIcon(
                         systemName: "power",
@@ -85,7 +82,6 @@ struct ControlCard: View {
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isOn)
         }
         .buttonStyle(.pressable)
-        .onAppear { isBreathing = true }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Lamp power")
         .accessibilityValue(isOn ? "On" : "Off")
@@ -99,9 +95,6 @@ struct ControlCard: View {
             icon: "sun.max.fill",
             label: "Brightness"
         )
-        .onChange(of: brightness) { _, _ in
-            HapticManager.shared.selection()
-        }
     }
 
     private var colorSection: some View {

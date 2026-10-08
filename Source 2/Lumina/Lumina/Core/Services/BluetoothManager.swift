@@ -20,7 +20,7 @@ enum ConnectionState: Equatable {
 }
 
 enum LampCommand: Equatable {
-    case setColor(red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, power: Bool)
+    case setColor(red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, power: Bool, debugLed: Bool)
     case setWifi(ssid: String, password: String)
 
     static let colorOpcode: UInt8 = 0x02
@@ -29,8 +29,8 @@ enum LampCommand: Equatable {
 
     var data: Data? {
         switch self {
-        case .setColor(let red, let green, let blue, let brightness, let power):
-            return Data([Self.colorOpcode, red, green, blue, brightness, power ? 1 : 0])
+        case .setColor(let red, let green, let blue, let brightness, let power, let debugLed):
+            return Data([Self.colorOpcode, red, green, blue, brightness, power ? 1 : 0, debugLed ? 1 : 0])
         case .setWifi(let ssid, let password):
             let ssidBytes = Data(ssid.utf8)
             let passwordBytes = Data(password.utf8)
@@ -210,6 +210,45 @@ final class BluetoothManager: NSObject {
         if connectionState == .connecting {
             centralManager.cancelPeripheralConnection(device.peripheral)
             connectionState = .error("Connection timed out")
+        }
+    }
+
+    func isLive(id: UUID) -> Bool {
+        connectionState == .connected && connectedDevice?.id == id
+    }
+
+    /// Reconnect a lamp this phone has seen before. iOS can reach it by the saved
+    /// identifier, so this does not keep the radio scanning on a timer.
+    func reconnect(to id: UUID, timeout: TimeInterval = 8) async {
+        if isLive(id: id) { return }
+        if let current = connectedPeripheral, current.identifier != id {
+            centralManager.cancelPeripheralConnection(current)
+            connectedPeripheral = nil
+            connectedDevice = nil
+            writeCharacteristic = nil
+            scanCharacteristic = nil
+            connectionState = .disconnected
+        }
+        let known = centralManager.retrievePeripherals(withIdentifiers: [id])
+        if let peripheral = known.first {
+            let name = peripheral.name ?? Self.targetDeviceName
+            await connect(to: DiscoveredPeripheral(peripheral: peripheral, name: name, rssi: 0))
+            if isLive(id: id) { return }
+        }
+
+        startScanning()
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if let found = discoveredDevices.first(where: { $0.id == id }) {
+                await connect(to: found)
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(200))
+        }
+        stopScanning()
+        if connectionState != .connected {
+            connectionState = .error("Lamp not nearby")
+            problemMessage = "The lamp is not advertising. Power it on and try again."
         }
     }
 

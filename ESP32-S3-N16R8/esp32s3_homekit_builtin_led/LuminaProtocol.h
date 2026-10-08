@@ -5,7 +5,7 @@
 #include <string.h>
 
 // Shared by the ESP32 firmware and the Lumina app.
-// Color:  0x02, R, G, B, brightness, power
+// Color:  0x02, R, G, B, brightness, power, debugLed
 // Wi-Fi:  0x10, ssidLen, ssid..., passwordLen, password...
 // Scan:   0x11 from the app. The lamp replies on the scan characteristic:
 //         0x11, flags, rssi, ssidLen, ssid...
@@ -23,6 +23,7 @@ struct Command {
   uint8_t red;
   uint8_t green;
   uint8_t blue;
+  bool debugLed;
   char ssid[maxSsid + 1];
   char password[maxPassword + 1];
 };
@@ -53,6 +54,7 @@ inline Command parse(const uint8_t *data, size_t length) {
     command.red = static_cast<uint8_t>(red);
     command.green = static_cast<uint8_t>(green);
     command.blue = static_cast<uint8_t>(blue);
+    command.debugLed = length >= 7 && data[6] != 0;
     return command;
   }
 

@@ -11,6 +11,13 @@ int main() {
   assert(color.red == 128);
   assert(color.green == 0);
   assert(color.blue == 0);
+  assert(!color.debugLed);
+
+  const uint8_t debugOn[] = {0x02, 10, 20, 30, 255, 1, 1};
+  LuminaProtocol::Command mirrored = LuminaProtocol::parse(debugOn, sizeof(debugOn));
+  assert(mirrored.kind == LuminaProtocol::Command::color);
+  assert(mirrored.debugLed);
+  assert(mirrored.red == 10 && mirrored.green == 20 && mirrored.blue == 30);
 
   const uint8_t off[] = {0x02, 255, 255, 255, 255, 0};
   LuminaProtocol::Command poweredOff = LuminaProtocol::parse(off, sizeof(off));

@@ -41,7 +41,6 @@ struct ColorWheelPicker: View {
                         )
                         .frame(width: size, height: size)
                         .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
-                        .shadow(color: selectedColor.opacity(isDragging ? 0.5 : 0.24), radius: isDragging ? 22 : 14)
 
                     Circle()
                         .fill(selectedColor)

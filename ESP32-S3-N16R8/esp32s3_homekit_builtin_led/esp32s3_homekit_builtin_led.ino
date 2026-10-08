@@ -267,6 +267,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::color) {
     applyRgb(command.red, command.green, command.blue);
+    BoardLed::setMirror(command.debugLed, command.red, command.green, command.blue);
   }
 }
 

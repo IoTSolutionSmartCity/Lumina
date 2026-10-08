@@ -28,7 +28,7 @@ struct OnboardingView: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    if viewModel.heroDevice == nil {
+                    if viewModel.discoveredDevices.isEmpty {
                         GlassButton(viewModel.isScanning ? "Scanning…" : "Scan again", icon: "arrow.clockwise") {
                             viewModel.beginDiscovery()
                         }
@@ -65,11 +65,6 @@ struct OnboardingView: View {
         .onDisappear {
             viewModel.stopScanning()
         }
-        .onChange(of: viewModel.heroDevice?.id) { _, id in
-            guard id != nil else { return }
-            HapticManager.shared.lightImpact()
-            viewModel.connectToHero()
-        }
     }
 
     private var header: some View {
@@ -78,7 +73,7 @@ struct OnboardingView: View {
                 .font(LuminaTheme.Typography.display)
                 .foregroundStyle(LuminaTheme.primaryGradient)
 
-            Text(viewModel.problemMessage ?? "Power on the lamp. It connects on its own, then you choose the Wi-Fi.")
+            Text(viewModel.problemMessage ?? "Power on the lamp, then tap the one you want.")
                 .font(LuminaTheme.Typography.subheadline)
                 .foregroundColor(.white.opacity(0.65))
                 .multilineTextAlignment(.center)
@@ -88,34 +83,70 @@ struct OnboardingView: View {
     }
 
     private var lampStage: some View {
-        ZStack {
-            if viewModel.heroDevice == nil && viewModel.problemMessage == nil {
-                ScanHalo()
-            }
-
-            Button {
-                viewModel.connectToHero()
-            } label: {
-                LampPreview3D(
-                    color: viewModel.heroDevice == nil ? LuminaTheme.neonPurple : LuminaTheme.neonCyan,
-                    brightness: viewModel.heroDevice == nil ? 0.45 : 0.9,
-                    isOn: viewModel.problemMessage == nil,
-                    showsReadout: false
-                )
-            }
-            .buttonStyle(.pressable)
-            .disabled(viewModel.heroDevice == nil || viewModel.isConnecting)
-            .accessibilityLabel(viewModel.heroDevice == nil ? "Searching for the lamp" : "Connect to \(viewModel.heroDevice?.name ?? "lamp")")
-            .accessibilityHint("Connects, then asks for the lamp Wi-Fi")
-
-            if viewModel.isConnecting {
-                ProgressView()
-                    .controlSize(.large)
-                    .tint(.white)
+        Group {
+            if viewModel.discoveredDevices.isEmpty {
+                ZStack {
+                    if viewModel.problemMessage == nil {
+                        ScanHalo()
+                    }
+                    LampPreview3D(
+                        color: LuminaTheme.neonPurple,
+                        brightness: 0.45,
+                        isOn: viewModel.problemMessage == nil,
+                        showsReadout: false
+                    )
+                    .accessibilityLabel("Searching for the lamp")
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 280)
+            } else {
+                VStack(spacing: LuminaTheme.Spacing.sm) {
+                    ForEach(viewModel.discoveredDevices) { device in
+                        Button {
+                            viewModel.connect(to: device)
+                        } label: {
+                            HStack(spacing: LuminaTheme.Spacing.md) {
+                                Image(systemName: "lamp.desk.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(LuminaTheme.neonCyan)
+                                    .frame(width: 36, height: 36)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(device.name)
+                                        .font(LuminaTheme.Typography.headline)
+                                        .foregroundColor(.white)
+                                    Text(signalLabel(device.rssi))
+                                        .font(LuminaTheme.Typography.caption)
+                                        .foregroundColor(.white.opacity(0.55))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.35))
+                            }
+                            .padding(.horizontal, LuminaTheme.Spacing.md)
+                            .frame(minHeight: 60)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.pressable)
+                        .disabled(viewModel.isConnecting)
+                        .glassCard(cornerRadius: LuminaTheme.CornerRadius.lg)
+                        .accessibilityLabel("Connect to \(device.name)")
+                    }
+                    if viewModel.isConnecting {
+                        ProgressView()
+                            .tint(.white)
+                            .padding(.top, LuminaTheme.Spacing.sm)
+                    }
+                }
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 320)
+    }
+
+    private func signalLabel(_ rssi: Int) -> String {
+        if rssi == 0 { return "Saved lamp" }
+        if rssi >= -60 { return "Strong signal" }
+        if rssi >= -80 { return "Nearby" }
+        return "Weak signal"
     }
 
     private var statusLine: some View {
@@ -127,7 +158,7 @@ struct OnboardingView: View {
                     .foregroundColor(.white.opacity(0.8))
             }
             if viewModel.discoveredDevices.count > 1 {
-                Text("\(viewModel.discoveredDevices.count) lamps nearby. Connecting to the closest.")
+                Text("\(viewModel.discoveredDevices.count) lamps nearby. Tap the one you want.")
                     .font(LuminaTheme.Typography.caption)
                     .foregroundColor(.white.opacity(0.45))
             }
@@ -136,14 +167,14 @@ struct OnboardingView: View {
 
     private var statusTitle: String {
         if viewModel.isConnecting { return "Connecting…" }
-        if let hero = viewModel.heroDevice { return "Tap \(hero.name)" }
+        if !viewModel.discoveredDevices.isEmpty { return "Choose a lamp" }
         if viewModel.problemMessage != nil { return "Bluetooth needed" }
         if viewModel.isScanning { return "Looking for your lamp" }
         return "No lamp yet"
     }
 
     private var statusColor: Color {
-        if viewModel.heroDevice != nil { return LuminaTheme.neonGreen }
+        if !viewModel.discoveredDevices.isEmpty { return LuminaTheme.neonGreen }
         if viewModel.problemMessage != nil { return LuminaTheme.neonRed }
         return LuminaTheme.neonPurple
     }

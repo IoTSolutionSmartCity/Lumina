@@ -26,14 +26,14 @@ final class OnboardingViewModel {
         bluetooth.stopScanning()
     }
 
-    func connectToHero() {
-        guard let hero = heroDevice, !isConnecting, !showWifiSetup else { return }
+    func connect(to device: DiscoveredPeripheral) {
+        guard !isConnecting, !showWifiSetup else { return }
         isConnecting = true
         Task {
-            await bluetooth.connect(to: hero)
+            await bluetooth.connect(to: device)
             isConnecting = false
             if bluetooth.connectionState == .connected {
-                remember(hero)
+                remember(device)
                 showWifiSetup = true
                 HapticManager.shared.success()
             } else {
@@ -50,7 +50,7 @@ final class OnboardingViewModel {
             manufacturer: "Lumina",
             model: "ESP32S3-N16R8",
             pairingCode: "46637726",
-            isConnected: true,
+            isConnected: false,
             brightness: 0.75,
             color: LuminaTheme.neonPurple,
             isOn: true

@@ -33,7 +33,9 @@ final class DashboardViewModel {
     }
 
     private func reconnect() async {
-        await bluetooth.scanAndConnect()
+        if let id = deviceRepository.selectedDevice?.id ?? deviceRepository.devices.first?.id {
+            await bluetooth.reconnect(to: id)
+        }
         connectionState = bluetooth.connectionState
         if let discovered = bluetooth.connectedDevice {
             remember(discovered)
@@ -51,7 +53,7 @@ final class DashboardViewModel {
             manufacturer: "Lumina",
             model: "ESP32S3-N16R8",
             pairingCode: "46637726",
-            isConnected: true,
+            isConnected: false,
             brightness: brightness,
             color: selectedColor,
             isOn: isOn
@@ -96,9 +98,12 @@ final class DashboardViewModel {
             green: components.green,
             blue: components.blue,
             brightness: level,
-            power: isOn
+            power: isOn,
+            debugLed: UserDefaults.standard.bool(forKey: "luminaDebugLed")
         ))
-        connectionState = bluetooth.connectionState
+        if connectionState != bluetooth.connectionState {
+            connectionState = bluetooth.connectionState
+        }
     }
 
     func applyFocusScene() {
