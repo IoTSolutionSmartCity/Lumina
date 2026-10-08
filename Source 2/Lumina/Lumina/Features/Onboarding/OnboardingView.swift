@@ -6,296 +6,173 @@ struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         NavigationStack {
             ZStack {
                 LuminaTheme.backgroundGradient.ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: LuminaTheme.Spacing.xl) {
-                        headerSection
+                VStack(spacing: LuminaTheme.Spacing.lg) {
+                    header
 
-                        stateCard
+                    Spacer(minLength: LuminaTheme.Spacing.md)
 
-                        bottomActions
+                    lampStage
+
+                    statusLine
+
+                    if case .error(let message) = viewModel.connectionState, !viewModel.isConnecting {
+                        Text(message)
+                            .font(LuminaTheme.Typography.caption)
+                            .foregroundColor(LuminaTheme.neonRed)
+                            .multilineTextAlignment(.center)
                     }
-                    .padding(.horizontal, LuminaTheme.Spacing.lg)
-                    .padding(.top, LuminaTheme.Spacing.lg)
-                    .padding(.bottom, LuminaTheme.Spacing.xxl)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isBluetoothEnabled)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.discoveredDevices.map(\.id))
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.connectionState)
+
+                    if viewModel.heroDevice == nil {
+                        GlassButton(viewModel.isScanning ? "Scanning…" : "Scan again", icon: "arrow.clockwise") {
+                            viewModel.beginDiscovery()
+                        }
+                        .frame(width: 200)
+                        .disabled(viewModel.isScanning)
+                    }
+
+                    Spacer(minLength: LuminaTheme.Spacing.md)
                 }
+                .padding(.horizontal, LuminaTheme.Spacing.lg)
+                .padding(.bottom, LuminaTheme.Spacing.lg)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Skip") {
-                        skipOnboarding()
-                    }
-                    .foregroundColor(.white.opacity(0.6))
+                    Button("Skip") { finish() }
+                        .foregroundColor(.white.opacity(0.6))
                 }
+            }
+            .navigationDestination(isPresented: $viewModel.showWifiSetup) {
+                WifiSetupView(onFinished: finish)
             }
         }
         .preferredColorScheme(.dark)
-        .onAppear {
-            viewModel.onAppear()
+        .task {
+            viewModel.beginDiscovery()
+            try? await Task.sleep(for: .seconds(20))
+            if !Task.isCancelled {
+                viewModel.stopScanning()
+            }
         }
         .onDisappear {
             viewModel.stopScanning()
         }
-    }
-
-    private var headerSection: some View {
-        VStack(spacing: LuminaTheme.Spacing.lg) {
-            discoveryHero
-
-            Text("Discover Your Lamp")
-                .font(LuminaTheme.Typography.title)
-                .foregroundColor(.white)
-
-            Text("Power on your Lumina ESP32-S3 lamp and keep it nearby. We will scan Bluetooth first, then guide pairing.")
-                .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.6))
-                .multilineTextAlignment(.center)
-                .lineLimit(nil)
+        .onChange(of: viewModel.heroDevice?.id) { _, id in
+            if id != nil {
+                HapticManager.shared.lightImpact()
+            }
         }
     }
 
-    private var discoveryHero: some View {
+    private var header: some View {
+        VStack(spacing: LuminaTheme.Spacing.sm) {
+            Text("Lumina")
+                .font(LuminaTheme.Typography.display)
+                .foregroundStyle(LuminaTheme.primaryGradient)
+
+            Text(viewModel.problemMessage ?? "Power on the lamp. When it lights up here, tap it.")
+                .font(LuminaTheme.Typography.subheadline)
+                .foregroundColor(.white.opacity(0.65))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.top, LuminaTheme.Spacing.md)
+    }
+
+    private var lampStage: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xxl)
-                .fill(Color.white.opacity(0.06))
-                .overlay(
-                    RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xxl)
-                        .stroke(LuminaTheme.glassBorder, lineWidth: 1)
+            if viewModel.heroDevice == nil && viewModel.problemMessage == nil {
+                ScanHalo()
+            }
+
+            Button {
+                viewModel.connectToHero()
+            } label: {
+                LampPreview3D(
+                    color: viewModel.heroDevice == nil ? LuminaTheme.neonPurple : LuminaTheme.neonCyan,
+                    brightness: viewModel.heroDevice == nil ? 0.45 : 0.9,
+                    isOn: viewModel.problemMessage == nil,
+                    showsReadout: false
                 )
-                .shadow(color: LuminaTheme.neonPurple.opacity(0.2), radius: 24)
-
-            VStack(spacing: LuminaTheme.Spacing.md) {
-                ZStack {
-                    Circle()
-                        .fill(LuminaTheme.neonPurple.opacity(0.18))
-                        .frame(width: 118, height: 118)
-                    Circle()
-                        .stroke(LuminaTheme.neonPurple.opacity(0.4), lineWidth: 1)
-                        .frame(width: 150, height: 150)
-                    AnimatedGlowIcon(systemName: "lamp.desk.fill", color: LuminaTheme.neonPurple, size: 54)
-                }
-
-                HStack(spacing: LuminaTheme.Spacing.sm) {
-                    PulsingDot(color: statusColor, size: 8)
-                    Text(statusText)
-                        .font(LuminaTheme.Typography.captionBold)
-                        .foregroundColor(.white.opacity(0.75))
-                }
             }
-        }
-        .frame(height: 220)
-    }
+            .buttonStyle(.pressable)
+            .disabled(viewModel.heroDevice == nil || viewModel.isConnecting)
+            .accessibilityLabel(viewModel.heroDevice == nil ? "Searching for the lamp" : "Connect to \(viewModel.heroDevice?.name ?? "lamp")")
+            .accessibilityHint("Connects, then asks for the lamp Wi-Fi")
 
-    private var stateCard: some View {
-        VStack(spacing: LuminaTheme.Spacing.lg) {
-            if !viewModel.isBluetoothEnabled {
-                bluetoothWarning
-                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
-            } else if viewModel.discoveredDevices.isEmpty {
-                scanningSection
-                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
-            } else {
-                deviceListSection
-                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
-            }
-        }
-        .padding(LuminaTheme.Spacing.lg)
-        .glassCard(cornerRadius: LuminaTheme.CornerRadius.xl)
-    }
-
-    private var bluetoothWarning: some View {
-        VStack(spacing: LuminaTheme.Spacing.md) {
-            Image(systemName: "antenna.radiowaves.left.and.right.slash")
-                .font(.system(size: 48))
-                .foregroundColor(LuminaTheme.neonOrange)
-
-            Text("Bluetooth Required")
-                .font(LuminaTheme.Typography.headline)
-                .foregroundColor(.white)
-
-            Text("Please enable Bluetooth in Settings to discover nearby lamps.")
-                .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.6))
-                .multilineTextAlignment(.center)
-
-            NeonButton("Open Settings", icon: "gear") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            }
-            .frame(width: 200)
-        }
-    }
-
-    private var scanningSection: some View {
-        VStack(spacing: LuminaTheme.Spacing.md) {
-            ZStack {
-                Circle()
-                    .stroke(LuminaTheme.neonPurple.opacity(0.25), lineWidth: 1)
-                    .frame(width: 64, height: 64)
-                Circle()
-                    .stroke(LuminaTheme.neonPurple.opacity(0.4), lineWidth: 1)
-                    .frame(width: 44, height: 44)
-                PulsingDot(color: LuminaTheme.neonPurple, size: 12)
-            }
-            .frame(height: 64)
-
-            VStack(spacing: 4) {
-                Text("Scanning for Lumina")
-                    .font(LuminaTheme.Typography.headline)
-                    .foregroundColor(.white)
-                Text("Keep the lamp powered on and within Bluetooth range.")
-                    .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.55))
-                    .multilineTextAlignment(.center)
-            }
-
-            ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: LuminaTheme.neonPurple))
-                .scaleEffect(1.2)
-
-            GlassButton("Scan Again", icon: "arrow.clockwise") {
-                viewModel.startScanning()
-            }
-            .frame(width: 200)
-        }
-    }
-
-    private var deviceListSection: some View {
-        VStack(alignment: .leading, spacing: LuminaTheme.Spacing.sm) {
-            HStack {
-                Text("Found \(viewModel.discoveredDevices.count) device(s)")
-                    .font(LuminaTheme.Typography.captionBold)
-                    .foregroundColor(.white.opacity(0.6))
-
-                Spacer()
-
-                Button {
-                    viewModel.startScanning()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.clockwise")
-                        Text("Refresh")
-                    }
-                    .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(LuminaTheme.neonPurple)
-                }
-                .buttonStyle(.pressable)
-            }
-
-            ForEach(viewModel.discoveredDevices) { device in
-                DeviceDiscoveryRow(device: device, isConnecting: viewModel.connectingDevice?.id == device.id) {
-                    viewModel.connect(to: device)
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-    }
-
-    private var bottomActions: some View {
-        VStack(spacing: LuminaTheme.Spacing.md) {
-            if case .connecting = viewModel.connectionState {
+            if viewModel.isConnecting {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                Text("Connecting to \(viewModel.connectingDevice?.name ?? "device")...")
-                    .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.6))
+                    .controlSize(.large)
+                    .tint(.white)
             }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 320)
+    }
 
-            if case .error(let msg) = viewModel.connectionState {
-                Text(msg)
+    private var statusLine: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: LuminaTheme.Spacing.sm) {
+                PulsingDot(color: statusColor, size: 8)
+                Text(statusTitle)
+                    .font(LuminaTheme.Typography.captionBold)
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            if viewModel.discoveredDevices.count > 1 {
+                Text("\(viewModel.discoveredDevices.count) lamps nearby. Connecting to the closest.")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(LuminaTheme.neonRed)
-                    .multilineTextAlignment(.center)
-                    .padding(LuminaTheme.Spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .glassCard(cornerRadius: LuminaTheme.CornerRadius.lg)
+                    .foregroundColor(.white.opacity(0.45))
             }
         }
     }
 
-    private var statusText: String {
-        if !viewModel.isBluetoothEnabled {
-            return "Bluetooth needed"
-        }
-        return viewModel.connectionState.displayText
+    private var statusTitle: String {
+        if viewModel.isConnecting { return "Connecting…" }
+        if let hero = viewModel.heroDevice { return "Tap \(hero.name)" }
+        if viewModel.problemMessage != nil { return "Bluetooth needed" }
+        if viewModel.isScanning { return "Looking for your lamp" }
+        return "No lamp yet"
     }
 
     private var statusColor: Color {
-        switch viewModel.connectionState {
-        case .connected: return LuminaTheme.neonGreen
-        case .scanning, .connecting: return LuminaTheme.neonOrange
-        case .disconnected: return LuminaTheme.neonPurple
-        case .error: return LuminaTheme.neonRed
-        }
+        if viewModel.heroDevice != nil { return LuminaTheme.neonGreen }
+        if viewModel.problemMessage != nil { return LuminaTheme.neonRed }
+        return LuminaTheme.neonPurple
     }
 
-    private func skipOnboarding() {
-        UserDefaults.standard.set(true, forKey: "isOnboarded")
+    private func finish() {
         isOnboarded = true
         dismiss()
     }
 }
 
-struct DeviceDiscoveryRow: View {
-    let device: DiscoveredPeripheral
-    let isConnecting: Bool
-    let onConnect: () -> Void
+private struct ScanHalo: View {
+    @State private var expanded = false
 
     var body: some View {
-        HStack(spacing: LuminaTheme.Spacing.md) {
-            ZStack {
+        ZStack {
+            ForEach(0..<3, id: \.self) { index in
                 Circle()
-                    .fill(LuminaTheme.neonPurple.opacity(0.2))
-                    .frame(width: 44, height: 44)
-
-                GlowIcon(systemName: "lamp.desk.fill", color: LuminaTheme.neonPurple, size: 20)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(device.name)
-                    .font(LuminaTheme.Typography.headline)
-                    .foregroundColor(.white)
-
-                HStack(spacing: 4) {
-                    Image(systemName: "wifi")
-                        .font(.system(size: 10))
-                    Text("RSSI: \(device.rssi) dBm")
-                        .font(LuminaTheme.Typography.caption)
-                }
-                .foregroundColor(.white.opacity(0.4))
-            }
-
-            Spacer()
-
-            if isConnecting {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: LuminaTheme.neonPurple))
-                    .scaleEffect(0.8)
-            } else {
-                Button {
-                    onConnect()
-                } label: {
-                    Text("Connect")
-                        .font(LuminaTheme.Typography.captionBold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, LuminaTheme.Spacing.md)
-                        .padding(.vertical, LuminaTheme.Spacing.sm)
-                        .background(LuminaTheme.neonPurple)
-                        .clipShape(Capsule())
-                        .shadow(color: LuminaTheme.neonPurple.opacity(0.4), radius: 8)
-                }
-                .buttonStyle(.pressable)
+                    .stroke(LuminaTheme.neonPurple.opacity(0.35), lineWidth: 1.5)
+                    .frame(width: 160, height: 160)
+                    .scaleEffect(expanded ? 1.85 : 0.72)
+                    .opacity(expanded ? 0 : 0.8)
+                    .animation(
+                        .easeOut(duration: 2.4)
+                            .repeatForever(autoreverses: false)
+                            .delay(Double(index) * 0.6),
+                        value: expanded
+                    )
             }
         }
-        .padding(LuminaTheme.Spacing.md)
-        .glassCard(cornerRadius: LuminaTheme.CornerRadius.lg)
+        .allowsHitTesting(false)
+        .onAppear { expanded = true }
+        .accessibilityHidden(true)
     }
 }

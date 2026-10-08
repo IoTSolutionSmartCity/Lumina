@@ -1,19 +1,20 @@
 /*
-  Lumina ESP32-S3 HomeKit RGBW Lamp
-  - Wi-Fi provisioning via HomeSpan's Setup Access Point + captive portal
-    (open "Lumina-Setup" network, auto-launched when no credentials are stored)
-  - Pairs to Apple Home via HomeSpan
-  - Exposes one color LightBulb accessory
-  - Drives four external 12 V RGBW channels with PWM MOSFET stages
-  - Reflects provisioning/connect/pairing/ready state on the onboard WS2812
+  Lumina ESP32-S3 HomeKit RGB Lamp
+  - Bluetooth first: the Lumina app finds the lamp, sends color, then Wi-Fi
+  - Saved Wi-Fi lets Apple Home / a HomePod mini pair over HomeKit
+  - RGB PWM on GPIO 4, 5, and 6. There is no white channel.
+  - HomeSpan still opens Lumina-Setup when no Wi-Fi is stored
 */
 
 #include <Arduino.h>
+#include <Preferences.h>
 #include <esp_arduino_version.h>
+#include <nvs.h>
 #include "HomeSpan.h"
 #include "LuminaWifi.h"
 #include "SystemState.h"
 #include "StatusLed.h"
+#include "../../ESP32-S3-N16R8/LuminaBle.h"
 
 // ---- Onboard status LED configuration ----
 // The onboard LED on ESP32S3-N16R8 is a single addressable WS2812 on GPIO 48.
@@ -23,9 +24,8 @@
   #define STATUS_LED_PIN 48
 #endif
 
-// ---- External RGBW lamp PWM pins ----
-// Confirm these against your exact ESP32-S3-N16R8 board before wiring.
-// Avoid boot strap pins, USB pins, flash/PSRAM pins, and GPIO 48.
+// ---- External RGB lamp PWM pins ----
+// GPIO 4 red, GPIO 5 green, GPIO 6 blue. GPIO 7 is not used.
 #ifndef PWM_R_PIN
   #define PWM_R_PIN 4
 #endif
@@ -38,10 +38,6 @@
   #define PWM_B_PIN 6
 #endif
 
-#ifndef PWM_W_PIN
-  #define PWM_W_PIN 7
-#endif
-
 #define PWM_FREQ_HZ 5000
 #define PWM_RESOLUTION_BITS 12
 #define PWM_MAX_DUTY ((1 << PWM_RESOLUTION_BITS) - 1)
@@ -49,7 +45,6 @@
 #define PWM_R_CHANNEL 0
 #define PWM_G_CHANNEL 1
 #define PWM_B_CHANNEL 2
-#define PWM_W_CHANNEL 3
 
 struct PwmOutput {
   uint8_t pin;
@@ -59,7 +54,6 @@ struct PwmOutput {
 const PwmOutput RED_OUTPUT = { PWM_R_PIN, PWM_R_CHANNEL };
 const PwmOutput GREEN_OUTPUT = { PWM_G_PIN, PWM_G_CHANNEL };
 const PwmOutput BLUE_OUTPUT = { PWM_B_PIN, PWM_B_CHANNEL };
-const PwmOutput WHITE_OUTPUT = { PWM_W_PIN, PWM_W_CHANNEL };
 
 void attachPwmOutput(const PwmOutput &output) {
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && ESP_ARDUINO_VERSION_MAJOR >= 3
@@ -82,9 +76,14 @@ void writePwmOutput(const PwmOutput &output, uint16_t duty) {
 #endif
 }
 
-uint16_t dutyFromFloat(float value) {
-  value = constrain(value, 0.0f, 1.0f);
-  return static_cast<uint16_t>(roundf(value * PWM_MAX_DUTY));
+uint16_t dutyFromByte(uint8_t value) {
+  return static_cast<uint16_t>((static_cast<uint32_t>(value) * PWM_MAX_DUTY) / 255);
+}
+
+void applyRgb(uint8_t red, uint8_t green, uint8_t blue) {
+  writePwmOutput(RED_OUTPUT, dutyFromByte(red));
+  writePwmOutput(GREEN_OUTPUT, dutyFromByte(green));
+  writePwmOutput(BLUE_OUTPUT, dutyFromByte(blue));
 }
 
 void hsvToRgb(float hue, float saturation, float value, float &red, float &green, float &blue) {
@@ -173,28 +172,18 @@ class RgbwLamp : public Service::LightBulb {
       float green = 0.0f;
       float blue = 0.0f;
       hsvToRgb(hueDegrees, saturationPercent / 100.0f, value, red, green, blue);
-
-      // Extract shared white content for the physical W channel.
-      float white = min(red, min(green, blue));
-      red -= white;
-      green -= white;
-      blue -= white;
-
-      writePwmOutput(RED_OUTPUT, dutyFromFloat(red));
-      writePwmOutput(GREEN_OUTPUT, dutyFromFloat(green));
-      writePwmOutput(BLUE_OUTPUT, dutyFromFloat(blue));
-      writePwmOutput(WHITE_OUTPUT, dutyFromFloat(white));
+      applyRgb(
+        static_cast<uint8_t>(roundf(red * 255.0f)),
+        static_cast<uint8_t>(roundf(green * 255.0f)),
+        static_cast<uint8_t>(roundf(blue * 255.0f))
+      );
 
       Serial.printf(
-        "HomeKit RGBW: power=%s brightness=%d hue=%.1f saturation=%.1f duty[R=%u G=%u B=%u W=%u]\n",
+        "HomeKit RGB: power=%s brightness=%d hue=%.1f saturation=%.1f\n",
         isOn ? "ON" : "OFF",
         brightnessPercent,
         hueDegrees,
-        saturationPercent,
-        dutyFromFloat(red),
-        dutyFromFloat(green),
-        dutyFromFloat(blue),
-        dutyFromFloat(white)
+        saturationPercent
       );
     }
 
@@ -204,12 +193,11 @@ class RgbwLamp : public Service::LightBulb {
       brightness = new Characteristic::Brightness(100);
       hue = new Characteristic::Hue(0);
       saturation = new Characteristic::Saturation(0);
-      new Characteristic::Name("Lumina RGBW Lamp");
+      new Characteristic::Name("Lumina Lamp");
 
       attachPwmOutput(RED_OUTPUT);
       attachPwmOutput(GREEN_OUTPUT);
       attachPwmOutput(BLUE_OUTPUT);
-      attachPwmOutput(WHITE_OUTPUT);
       applyState();
     }
 
@@ -256,9 +244,43 @@ void onHomeSpanStatus(HS_STATUS status) {
   Serial.printf("HomeSpan status -> %s\n", homeSpan.statusString(status));
 }
 
+bool wifiCameFromApp() {
+  Preferences prefs;
+  prefs.begin("lumina", true);
+  const bool savedByApp = prefs.getBool("appwifi", false);
+  prefs.end();
+  return savedByApp;
+}
+
+void markWifiFromApp() {
+  Preferences prefs;
+  prefs.begin("lumina", false);
+  prefs.putBool("appwifi", true);
+  prefs.end();
+}
+
+// HomeSpan keeps the last SSID in its own flash namespace. A normal sketch
+// upload leaves that behind, so a lamp can boot straight into an old network.
+void forgetLeftoverWifi() {
+  nvs_handle_t wifiStore;
+  if (nvs_open("WIFI", NVS_READWRITE, &wifiStore) != ESP_OK) {
+    return;
+  }
+  nvs_erase_key(wifiStore, "WIFIDATA");
+  nvs_commit(wifiStore);
+  nvs_close(wifiStore);
+}
+
 void setup() {
   Serial.begin(115200);
   while (!Serial && millis() < 5000) delay(10);  // wait for USB-CDC monitor, cap so headless boots don't hang
+
+  if (!wifiCameFromApp()) {
+    forgetLeftoverWifi();
+    Serial.println("BLE first. Waiting for the Lumina app to send Wi-Fi.");
+  }
+
+  LuminaBle::begin();
 
   // Sane default until HomeSpan reports its first real status: HomeSpan
   // boots into HS_INITIAL_SETUP, which does not itself trigger the status
@@ -272,32 +294,41 @@ void setup() {
   homeSpan.setStatusCallback(onHomeSpanStatus);
   homeSpan.setLogLevel(1);
 
-  // Wi-Fi provisioning: HomeSpan stores credentials in NVS and reconnects
-  // automatically on power cycles. When none are stored it auto-launches an
-  // open Setup Access Point with a captive-portal network scan/entry page.
-  homeSpan.setApSSID("Lumina-Setup");
-  homeSpan.setApPassword("");  // open network, no password required to join
-  homeSpan.setApTimeout(300);
-  homeSpan.enableAutoStartAP();
-
   homeSpan.begin(Category::Lighting, "Lumina ESP32S3 Lamp");
 
   new SpanAccessory();
     new Service::AccessoryInformation();
       new Characteristic::Identify();
-      new Characteristic::Name("Lumina RGBW Lamp");
+      new Characteristic::Name("Lumina Lamp");
       new Characteristic::Manufacturer("Lumina");
       new Characteristic::SerialNumber("LUMINA-S3-001");
       new Characteristic::Model("ESP32S3-N16R8");
-      new Characteristic::FirmwareRevision("1.1.0");
+      new Characteristic::FirmwareRevision("1.2.0");
     new RgbwLamp();
 
-  Serial.println("\n=== HomeKit RGBW Lamp Ready ===");
-  Serial.printf("RGBW PWM pins: R=%d G=%d B=%d W=%d, frequency=%d Hz, resolution=%d bits\n",
-                PWM_R_PIN, PWM_G_PIN, PWM_B_PIN, PWM_W_PIN, PWM_FREQ_HZ, PWM_RESOLUTION_BITS);
+  Serial.println("\n=== HomeKit RGB Lamp Ready ===");
+  Serial.printf("RGB PWM pins: R=%d G=%d B=%d, frequency=%d Hz, resolution=%d bits\n",
+                PWM_R_PIN, PWM_G_PIN, PWM_B_PIN, PWM_FREQ_HZ, PWM_RESOLUTION_BITS);
+}
+
+void handleBleCommand(const LuminaProtocol::Command &command) {
+  if (command.kind == LuminaProtocol::Command::wifi) {
+    Serial.print("Saving Wi-Fi for HomeKit: ");
+    Serial.println(command.ssid);
+    markWifiFromApp();
+    homeSpan.setWifiCredentials(command.ssid, command.password);
+    delay(400);
+    ESP.restart();
+  } else if (command.kind == LuminaProtocol::Command::color) {
+    applyRgb(command.red, command.green, command.blue);
+  }
 }
 
 void loop() {
   StatusLed::update();
+  LuminaProtocol::Command command;
+  if (LuminaBle::takeEvent(command)) {
+    handleBleCommand(command);
+  }
   homeSpan.poll();
 }

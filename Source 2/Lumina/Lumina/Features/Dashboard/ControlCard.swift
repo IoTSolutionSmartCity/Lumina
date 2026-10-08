@@ -86,6 +86,11 @@ struct ControlCard: View {
         }
         .buttonStyle(.pressable)
         .onAppear { isBreathing = true }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Lamp power")
+        .accessibilityValue(isOn ? "On" : "Off")
+        .accessibilityHint(isOn ? "Double tap to turn off" : "Double tap to turn on")
+        .accessibilityAddTraits(.isButton)
     }
 
     private var brightnessControl: some View {

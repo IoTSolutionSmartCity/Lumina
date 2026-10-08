@@ -1,65 +1,61 @@
 import Foundation
-import CoreBluetooth
 import SwiftUI
 
 @MainActor
 @Observable
 final class OnboardingViewModel {
-    var discoveredDevices: [DiscoveredPeripheral] = []
-    var connectionState: ConnectionState = .disconnected
-    var isBluetoothEnabled: Bool = false
-    var connectingDevice: DiscoveredPeripheral?
+    var showWifiSetup = false
+    var isConnecting = false
 
-    private let bluetoothManager = BluetoothManager()
+    private let bluetooth = BluetoothManager.shared
 
-    func onAppear() {
-        checkBluetoothState()
-        if isBluetoothEnabled {
-            startScanning()
-        }
+    var discoveredDevices: [DiscoveredPeripheral] { bluetooth.discoveredDevices }
+    var connectionState: ConnectionState { bluetooth.connectionState }
+    var problemMessage: String? { bluetooth.problemMessage }
+    var isScanning: Bool { bluetooth.isScanning }
+
+    var heroDevice: DiscoveredPeripheral? {
+        bluetooth.discoveredDevices.max { $0.rssi < $1.rssi }
     }
 
-    private func checkBluetoothState() {
-        // In real implementation, check CBCentralManager authorization
-        isBluetoothEnabled = true
-    }
-
-    func startScanning() {
-        discoveredDevices.removeAll()
-        connectionState = .scanning
-
-        Task {
-            await bluetoothManager.startScanning()
-            await MainActor.run {
-                discoveredDevices = bluetoothManager.discoveredDevices
-                if connectionState == .scanning {
-                    connectionState = .disconnected
-                }
-            }
-        }
+    func beginDiscovery() {
+        bluetooth.startScanning()
     }
 
     func stopScanning() {
-        bluetoothManager.stopScanning()
+        bluetooth.stopScanning()
     }
 
-    func connect(to device: DiscoveredPeripheral) {
-        connectingDevice = device
-        connectionState = .connecting
-
+    func connectToHero() {
+        guard let hero = heroDevice, !isConnecting else { return }
+        isConnecting = true
         Task {
-            await bluetoothManager.connect(to: device)
-            await MainActor.run {
-                connectionState = bluetoothManager.connectionState
-                if case .connected = connectionState {
-                    UserDefaults.standard.set(true, forKey: "isOnboarded")
-                    HapticManager.shared.success()
-                } else if case .error(let msg) = connectionState {
-                    connectionState = .error(msg)
-                    HapticManager.shared.error()
-                }
-                connectingDevice = nil
+            await bluetooth.connect(to: hero)
+            isConnecting = false
+            if bluetooth.connectionState == .connected {
+                remember(hero)
+                showWifiSetup = true
+                HapticManager.shared.success()
+            } else {
+                HapticManager.shared.error()
             }
         }
+    }
+
+    private func remember(_ device: DiscoveredPeripheral) {
+        let lamp = LampDevice(
+            id: device.id,
+            name: device.name,
+            serialNumber: "LUMINA-S3-001",
+            manufacturer: "Lumina",
+            model: "ESP32S3-N16R8",
+            pairingCode: "46637726",
+            isConnected: true,
+            brightness: 0.75,
+            color: LuminaTheme.neonPurple,
+            isOn: true
+        )
+        DeviceRepository.shared.addDevice(lamp)
+        DeviceRepository.shared.selectDevice(lamp)
     }
 }

@@ -15,7 +15,7 @@ struct ConnectionBadge: View {
                 .font(LuminaTheme.Typography.captionBold)
 
             Text("•")
-                .foregroundColor(.white.opacity(0.4))
+                .foregroundColor(.white.opacity(0.5))
 
             Text(serialNumber)
                 .font(LuminaTheme.Typography.caption)
@@ -25,6 +25,8 @@ struct ConnectionBadge: View {
         .padding(.horizontal, LuminaTheme.Spacing.md)
         .padding(.vertical, LuminaTheme.Spacing.sm)
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.full)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(isConnected ? "Connected, serial number \(serialNumber)" : "Disconnected, serial number \(serialNumber)")
     }
 }
 
@@ -65,6 +67,8 @@ struct ConnectionStatusPill: View {
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.full)
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: state)
         .onAppear { isPulsing = true }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(state.displayText)
     }
 
     private var statusColor: Color {

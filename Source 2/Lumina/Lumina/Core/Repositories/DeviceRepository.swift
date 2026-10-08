@@ -50,9 +50,23 @@ final class DeviceRepository {
     }
 
     private func loadDevices() {
-        if let saved = UserDefaults.standard.data(forKey: userDefaultsKey),
-           (try? JSONDecoder().decode([String].self, from: saved)) != nil {
-            // IDs restored; actual device data comes from Bluetooth/HomeKit
+        guard let saved = UserDefaults.standard.data(forKey: userDefaultsKey),
+              let ids = try? JSONDecoder().decode([String].self, from: saved) else { return }
+        devices = ids.compactMap { raw in
+            guard let id = UUID(uuidString: raw) else { return nil }
+            return LampDevice(
+                id: id,
+                name: BluetoothManager.targetDeviceName,
+                serialNumber: "LUMINA-S3-001",
+                manufacturer: "Lumina",
+                model: "ESP32S3-N16R8",
+                pairingCode: "46637726",
+                isConnected: false,
+                brightness: 0.75,
+                color: LuminaTheme.neonPurple,
+                isOn: false
+            )
         }
+        selectedDevice = devices.first
     }
 }

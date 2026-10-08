@@ -4,6 +4,7 @@ struct LampPreview3D: View {
     var color: Color
     var brightness: Double
     var isOn: Bool
+    var showsReadout: Bool = true
 
     @State private var isBreathing = false
 
@@ -54,13 +55,15 @@ struct LampPreview3D: View {
             }
             .shadow(color: .black.opacity(0.35), radius: 22, x: 0, y: 18)
 
-            VStack {
-                Spacer()
-                Text(isOn ? "\(Int(brightness * 100))% brightness" : "Lamp off")
-                    .font(LuminaTheme.Typography.captionBold)
-                    .foregroundColor(.white.opacity(0.6))
-                    .contentTransition(.numericText())
-                    .padding(.bottom, LuminaTheme.Spacing.md)
+            if showsReadout {
+                VStack {
+                    Spacer()
+                    Text(isOn ? "\(Int(brightness * 100))% brightness" : "Lamp off")
+                        .font(LuminaTheme.Typography.captionBold)
+                        .foregroundColor(.white.opacity(0.6))
+                        .contentTransition(.numericText())
+                        .padding(.bottom, LuminaTheme.Spacing.md)
+                }
             }
         }
         .frame(height: 300)

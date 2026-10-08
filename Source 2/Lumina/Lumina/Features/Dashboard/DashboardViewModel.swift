@@ -11,7 +11,7 @@ final class DashboardViewModel {
     var isOn: Bool = true
     var showOnboarding: Bool = false
 
-    private let bluetoothManager = BluetoothManager()
+    private let bluetooth = BluetoothManager.shared
     private let homeKitManager = HomeKitManager()
     private let deviceRepository = DeviceRepository.shared
     private var pendingUpdateTask: Task<Void, Never>?
@@ -21,18 +21,29 @@ final class DashboardViewModel {
             showOnboarding = true
         } else if let first = deviceRepository.devices.first {
             connectedDevice = first
-            connectionState = first.isConnected ? .connected : .disconnected
+            connectionState = .disconnected
             brightness = first.brightness
             selectedColor = first.color
             isOn = first.isOn
         }
+        if !showOnboarding {
+            Task { await reconnect() }
+        }
     }
 
-    private func handleDeviceConnected(_ discovered: DiscoveredPeripheral) {
+    private func reconnect() async {
+        await bluetooth.scanAndConnect()
+        connectionState = bluetooth.connectionState
+        if let discovered = bluetooth.connectedDevice {
+            remember(discovered)
+        }
+    }
+
+    private func remember(_ discovered: DiscoveredPeripheral) {
         let device = LampDevice(
             id: discovered.id,
             name: discovered.name,
-            serialNumber: "LUMINA-S3-\(discovered.id.uuidString.prefix(4).uppercased())",
+            serialNumber: "LUMINA-S3-001",
             manufacturer: "Lumina",
             model: "ESP32S3-N16R8",
             pairingCode: "46637726",
@@ -42,8 +53,12 @@ final class DashboardViewModel {
             isOn: isOn
         )
         connectedDevice = device
-        deviceRepository.addDevice(device)
-        HapticManager.shared.success()
+        if deviceRepository.devices.contains(where: { $0.id == device.id }) {
+            deviceRepository.updateDevice(device)
+        } else {
+            deviceRepository.addDevice(device)
+        }
+        deviceRepository.selectDevice(device)
     }
 
     func sendUpdate(debounced: Bool = true) {
@@ -62,24 +77,24 @@ final class DashboardViewModel {
     }
 
     private func performSendUpdate() {
-        guard let device = connectedDevice else { return }
-        var updated = device
-        updated.brightness = brightness
-        updated.color = selectedColor
-        updated.isOn = isOn
-        deviceRepository.updateDevice(updated)
-        connectedDevice = updated
+        if var updated = connectedDevice {
+            updated.brightness = brightness
+            updated.color = selectedColor
+            updated.isOn = isOn
+            deviceRepository.updateDevice(updated)
+            connectedDevice = updated
+        }
 
         let components = selectedColor.components
-        Task {
-            await bluetoothManager.sendCommand(.setPower(isOn))
-            await bluetoothManager.sendCommand(.setBrightness(brightness))
-            await bluetoothManager.sendCommand(.setColor(red: components.red, green: components.green, blue: components.blue))
-            connectionState = bluetoothManager.connectionState
-            if let discovered = bluetoothManager.connectedDevice {
-                handleDeviceConnected(discovered)
-            }
-        }
+        let level = UInt8(min(255, max(0, Int((brightness * 255).rounded()))))
+        bluetooth.sendColor(.setColor(
+            red: components.red,
+            green: components.green,
+            blue: components.blue,
+            brightness: level,
+            power: isOn
+        ))
+        connectionState = bluetooth.connectionState
     }
 
     func applyFocusScene() {

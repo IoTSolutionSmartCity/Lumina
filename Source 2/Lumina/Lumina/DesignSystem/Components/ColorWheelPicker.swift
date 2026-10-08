@@ -76,6 +76,18 @@ struct ColorWheelPicker: View {
                             HapticManager.shared.selection()
                         }
                 )
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Color wheel")
+                .accessibilityValue("Hex \(selectedColor.hexString)")
+                .accessibilityHint("Swipe up or down to adjust hue")
+                .accessibilityAddTraits(.allowsDirectInteraction)
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: adjustHue(by: 1.0 / 36)
+                    case .decrement: adjustHue(by: -1.0 / 36)
+                    @unknown default: break
+                    }
+                }
             }
             .aspectRatio(1, contentMode: .fit)
 
@@ -92,7 +104,7 @@ struct ColorWheelPicker: View {
                     .foregroundColor(.white.opacity(0.75))
                 Text("#\(selectedColor.hexString)")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.45))
+                    .foregroundColor(.white.opacity(0.6))
             }
 
             Spacer()
@@ -110,8 +122,11 @@ struct ColorWheelPicker: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundColor(containsCurrentColor ? LuminaTheme.neonGreen : LuminaTheme.neonPurple)
                     .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.pressable)
+            .accessibilityLabel(containsCurrentColor ? "Remove current color from presets" : "Add current color to presets")
 
             Button {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
@@ -122,8 +137,11 @@ struct ColorWheelPicker: View {
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white.opacity(0.65))
                     .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.pressable)
+            .accessibilityLabel(isEditingPresets ? "Done editing presets" : "Edit presets")
         }
     }
 
@@ -148,19 +166,21 @@ struct ColorWheelPicker: View {
                 HStack(spacing: LuminaTheme.Spacing.sm) {
                     ForEach(presetHexColors, id: \.self) { hex in
                         let color = Color(hex: hex)
+                        let isSelected = selectedColor.hexString == hex
                         ZStack(alignment: .topTrailing) {
                             Circle()
                                 .fill(color)
                                 .frame(width: 36, height: 36)
                                 .overlay(
                                     Circle().stroke(
-                                        selectedColor.hexString == hex ? Color.white : Color.white.opacity(0.16),
-                                        lineWidth: selectedColor.hexString == hex ? 2 : 1
+                                        isSelected ? Color.white : Color.white.opacity(0.16),
+                                        lineWidth: isSelected ? 2 : 1
                                     )
                                 )
-                                .shadow(color: color.opacity(0.6), radius: selectedColor.hexString == hex ? 8 : 0)
-                                .scaleEffect(selectedColor.hexString == hex ? 1.1 : 1.0)
-                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedColor.hexString == hex)
+                                .shadow(color: color.opacity(0.6), radius: isSelected ? 8 : 0)
+                                .scaleEffect(isSelected ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+                                .contentShape(Circle().inset(by: -4))
                                 .onTapGesture {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                         selectedColor = color
@@ -168,6 +188,9 @@ struct ColorWheelPicker: View {
                                     onColorChange?(color)
                                     HapticManager.shared.lightImpact()
                                 }
+                                .accessibilityLabel("Preset color #\(hex)")
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
 
                             if isEditingPresets {
                                 Button {
@@ -177,8 +200,10 @@ struct ColorWheelPicker: View {
                                         .font(.system(size: 16))
                                         .foregroundColor(LuminaTheme.neonRed)
                                         .background(Circle().fill(LuminaTheme.deepNavy))
+                                        .contentShape(Circle().inset(by: -10))
                                 }
                                 .buttonStyle(.pressable)
+                                .accessibilityLabel("Remove preset color #\(hex)")
                                 .offset(x: 5, y: -5)
                                 .transition(.scale.combined(with: .opacity))
                             }
@@ -219,6 +244,18 @@ struct ColorWheelPicker: View {
         let saturation = min(max(distance / (wheelDiameter / 2), 0.02), 1.0)
         let brightness = 1.0 - max(0, 0.18 - saturation) * 0.35
         return Color(hue: normalizedHue, saturation: saturation, brightness: brightness)
+    }
+
+    private func adjustHue(by delta: Double) {
+        let hsba = selectedColor.hsbaComponents
+        var hue = Double(hsba.hue) + delta
+        hue = hue.truncatingRemainder(dividingBy: 1.0)
+        if hue < 0 { hue += 1 }
+        let saturation = max(0.08, Double(hsba.saturation))
+        let color = Color(hue: hue, saturation: saturation, brightness: Double(hsba.brightness))
+        selectedColor = color
+        onColorChange?(color)
+        HapticManager.shared.selection()
     }
 
     private func loadPresets() {

@@ -17,17 +17,18 @@ struct LuminaTheme {
     static let glassBorder = Color.white.opacity(0.15)
 
     // MARK: - Typography
+    // Mapped to system text styles (rather than fixed point sizes) so all text scales with Dynamic Type.
     struct Typography {
-        static let display = Font.system(size: 34, weight: .bold, design: .default)
-        static let title = Font.system(size: 22, weight: .semibold, design: .default)
-        static let title2 = Font.system(size: 20, weight: .semibold, design: .default)
-        static let headline = Font.system(size: 17, weight: .semibold, design: .default)
-        static let body = Font.system(size: 17, weight: .regular, design: .default)
-        static let callout = Font.system(size: 16, weight: .regular, design: .default)
-        static let subheadline = Font.system(size: 15, weight: .regular, design: .default)
-        static let footnote = Font.system(size: 13, weight: .regular, design: .default)
-        static let caption = Font.system(size: 12, weight: .regular, design: .default)
-        static let captionBold = Font.system(size: 12, weight: .semibold, design: .default)
+        static let display = Font.system(.largeTitle, design: .default, weight: .bold)
+        static let title = Font.system(.title, design: .default, weight: .semibold)
+        static let title2 = Font.system(.title2, design: .default, weight: .semibold)
+        static let headline = Font.system(.headline, design: .default, weight: .semibold)
+        static let body = Font.system(.body, design: .default, weight: .regular)
+        static let callout = Font.system(.callout, design: .default, weight: .regular)
+        static let subheadline = Font.system(.subheadline, design: .default, weight: .regular)
+        static let footnote = Font.system(.footnote, design: .default, weight: .regular)
+        static let caption = Font.system(.caption, design: .default, weight: .regular)
+        static let captionBold = Font.system(.caption, design: .default, weight: .semibold)
     }
 
     // MARK: - Gradients

@@ -69,7 +69,7 @@ struct MainDashboardView: View {
                 } else {
                     Text("No device connected")
                         .font(LuminaTheme.Typography.caption)
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.white.opacity(0.55))
                 }
             }
 
@@ -79,10 +79,11 @@ struct MainDashboardView: View {
                 showSettings = true
             } label: {
                 GlowIcon(systemName: "gearshape.fill", color: .white.opacity(0.7), size: 22)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 44, height: 44)
                     .glassCard(cornerRadius: LuminaTheme.CornerRadius.full)
             }
             .buttonStyle(.pressable)
+            .accessibilityLabel("Settings")
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
@@ -143,5 +144,8 @@ struct SceneButton: View {
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isActive)
         }
         .buttonStyle(.pressable)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : [.isButton])
     }
 }

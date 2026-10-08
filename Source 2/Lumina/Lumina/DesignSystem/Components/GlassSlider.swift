@@ -44,6 +44,7 @@ struct GlassSlider: View {
                         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isDragging)
                 }
                 .frame(height: 8)
+                .padding(.vertical, 8)
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture(minimumDistance: 0)
@@ -61,6 +62,18 @@ struct GlassSlider: View {
                 )
             }
             .frame(height: 24)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label ?? "Slider")
+        .accessibilityValue("\(Int(value * 100))%")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAdjustableAction { direction in
+            let step = (range.upperBound - range.lowerBound) / 20
+            switch direction {
+            case .increment: value = min(range.upperBound, value + step)
+            case .decrement: value = max(range.lowerBound, value - step)
+            @unknown default: break
+            }
         }
     }
 }
