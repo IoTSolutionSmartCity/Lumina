@@ -266,7 +266,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     BoardLed::celebrateWifi();
   } else if (command.kind == LuminaProtocol::Command::scan) {
     publishWifiScan();
-  } else if (command.kind == LuminaProtocol::Command::mode) {
+  } else if (command.kind == LuminaProtocol::Command::mode || command.kind == LuminaProtocol::Command::flow) {
     LuminaModes::handle(command, applyRgb);
   } else if (command.kind == LuminaProtocol::Command::color) {
     LuminaModes::handle(command, applyRgb);

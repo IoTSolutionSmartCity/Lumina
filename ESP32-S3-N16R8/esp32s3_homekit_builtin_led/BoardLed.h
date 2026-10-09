@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include "LuminaBle.h"
+#include "LuminaModes.h"
 
 // Onboard WS2812 on GPIO 48. The lamp color itself is the PWM on GPIO 4, 5, and 6.
 namespace BoardLed {
@@ -51,6 +52,7 @@ inline void update() {
 
   if (greenUntil != 0 && static_cast<int32_t>(greenUntil - now) > 0) {
     green = 160;
+  } else if (LuminaModes::effectColor(red, green, blue)) {
   } else if (mirrorAppColor) {
     red = mirrorRed;
     green = mirrorGreen;

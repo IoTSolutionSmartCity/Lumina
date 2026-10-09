@@ -19,13 +19,22 @@ enum ConnectionState: Equatable {
     }
 }
 
+struct LampColor: Equatable {
+    var red: UInt8
+    var green: UInt8
+    var blue: UInt8
+}
+
 enum LampCommand: Equatable {
     case setColor(red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, power: Bool, debugLed: Bool)
     case runMode(id: UInt8, red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, breath: Bool)
+    case runBreath(red: UInt8, green: UInt8, blue: UInt8, minimum: UInt8, maximum: UInt8)
+    case runFlow(colors: [LampColor], brightness: UInt8)
     case setWifi(ssid: String, password: String)
 
     static let colorOpcode: UInt8 = 0x02
     static let modeOpcode: UInt8 = 0x03
+    static let flowOpcode: UInt8 = 0x05
     static let wifiOpcode: UInt8 = 0x10
     static let scanOpcode: UInt8 = 0x11
 
@@ -35,6 +44,16 @@ enum LampCommand: Equatable {
             return Data([Self.colorOpcode, red, green, blue, brightness, power ? 1 : 0, debugLed ? 1 : 0])
         case .runMode(let id, let red, let green, let blue, let brightness, let breath):
             return Data([Self.modeOpcode, id, red, green, blue, brightness, breath ? 1 : 0])
+        case .runBreath(let red, let green, let blue, let minimum, let maximum):
+            return Data([Self.modeOpcode, 4, red, green, blue, minimum, maximum])
+        case .runFlow(let colors, let brightness):
+            let chosen = Array(colors.prefix(5))
+            guard !chosen.isEmpty else { return nil }
+            var data = Data([Self.flowOpcode, UInt8(chosen.count), brightness])
+            for color in chosen {
+                data.append(contentsOf: [color.red, color.green, color.blue])
+            }
+            return data
         case .setWifi(let ssid, let password):
             let ssidBytes = Data(ssid.utf8)
             let passwordBytes = Data(password.utf8)
@@ -272,7 +291,11 @@ final class BluetoothManager: NSObject {
     func sendColor(_ command: LampCommand) {
         guard let data = command.data else { return }
         outgoing.removeAll {
-            $0.continuation == nil && ($0.data.first == LampCommand.colorOpcode || $0.data.first == LampCommand.modeOpcode)
+            $0.continuation == nil && (
+                $0.data.first == LampCommand.colorOpcode
+                    || $0.data.first == LampCommand.modeOpcode
+                    || $0.data.first == LampCommand.flowOpcode
+            )
         }
         outgoing.append(Outgoing(data: data, continuation: nil))
         pump()

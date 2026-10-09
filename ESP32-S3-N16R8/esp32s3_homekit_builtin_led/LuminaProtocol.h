@@ -6,9 +6,11 @@
 
 // Shared by the ESP32 firmware and the Lumina app.
 // Color:  0x02, R, G, B, brightness, power, debugLed
-// Mode:   0x03, id, R, G, B, brightness, breath
-//         id 0 color, 1 warm, 2 soft, 3 cool, 4 breath.
+// Mode:   0x03, id, R, G, B, brightness, flags
+//         id 0 color, 1 warm, 2 soft, 3 cool.
+//         id 4 breath uses the last two bytes as minimum and maximum brightness.
 //         A 2-byte packet (0x03, id) runs the copy saved on the lamp.
+// Flow:   0x05, count, brightness, R, G, B, ... up to 5 colors. 流光.
 // Wi-Fi:  0x10, ssidLen, ssid..., passwordLen, password...
 // Scan:   0x11 from the app. The lamp replies on the scan characteristic:
 //         0x11, flags, rssi, ssidLen, ssid...
@@ -17,18 +19,23 @@ namespace LuminaProtocol {
 
 static constexpr uint8_t colorCommand = 0x02;
 static constexpr uint8_t modeCommand = 0x03;
+static constexpr uint8_t flowCommand = 0x05;
 static constexpr uint8_t wifiCommand = 0x10;
 static constexpr uint8_t scanCommand = 0x11;
 static constexpr size_t maxSsid = 32;
 static constexpr size_t maxPassword = 64;
+static constexpr size_t maxFlowColors = 5;
 
 struct Command {
-  enum Kind { invalid, color, wifi, scan, mode } kind;
+  enum Kind { invalid, color, wifi, scan, mode, flow } kind;
   uint8_t red;
   uint8_t green;
   uint8_t blue;
   uint8_t brightness;
+  uint8_t breathMax;
   uint8_t modeId;
+  uint8_t flowCount;
+  uint8_t flowRgb[maxFlowColors * 3];
   bool breath;
   bool recalls;
   bool debugLed;
@@ -75,8 +82,25 @@ inline Command parse(const uint8_t *data, size_t length) {
       command.green = data[3];
       command.blue = data[4];
       command.brightness = data[5];
-      command.breath = data[6] != 0;
+      if (command.modeId == 4) {
+        command.breath = true;
+        command.breathMax = data[6];
+      } else {
+        command.breath = data[6] != 0;
+      }
     }
+    return command;
+  }
+
+  if (data[0] == flowCommand && length >= 6) {
+    const uint8_t count = data[1];
+    if (count == 0 || count > maxFlowColors || length < 3u + count * 3u) {
+      return command;
+    }
+    command.kind = Command::flow;
+    command.flowCount = count;
+    command.brightness = data[2];
+    memcpy(command.flowRgb, data + 3, count * 3u);
     return command;
   }
 

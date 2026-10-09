@@ -16,8 +16,10 @@ struct MainDashboardView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: LuminaTheme.Spacing.lg) {
                         LampPreview3D(
-                            color: viewModel.selectedColor,
-                            brightness: viewModel.isBreathing && breathLow ? viewModel.brightness * 0.22 : viewModel.brightness,
+                            color: viewModel.isBreathing ? LampEffects.breathColor : viewModel.selectedColor,
+                            brightness: viewModel.isBreathing
+                                ? (breathLow ? LampEffects.breathMinimum : LampEffects.breathMaximum)
+                                : viewModel.brightness,
                             isOn: viewModel.isOn
                         )
                         .animation(viewModel.isBreathing && breathLow ? .easeInOut(duration: 2.4).repeatForever(autoreverses: true) : nil, value: breathLow)

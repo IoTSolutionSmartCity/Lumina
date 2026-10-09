@@ -19,6 +19,7 @@ struct SettingsView: View {
 
                 List {
                     devicesSection
+                    effectsSection
                     debugSection
                     accountSection
                     appSection
@@ -181,6 +182,30 @@ struct SettingsView: View {
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("Account")
+                .foregroundColor(LuminaTheme.textSecondary)
+        }
+    }
+
+    private var effectsSection: some View {
+        Section {
+            NavigationLink {
+                LampEffectSetupView()
+            } label: {
+                HStack {
+                    Text("Breath and Flow")
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text("Color and range")
+                        .font(LuminaTheme.Typography.caption)
+                        .foregroundColor(LuminaTheme.textSecondary)
+                }
+            }
+            .listRowBackground(LuminaTheme.darkSurface)
+        } header: {
+            Text("Lamp effects")
+                .foregroundColor(LuminaTheme.textSecondary)
+        } footer: {
+            Text("Choose the breath color and brightness range, and the colors Flow moves through. Saving sends them to the ESP32-S3.")
                 .foregroundColor(LuminaTheme.textSecondary)
         }
     }

@@ -19,6 +19,7 @@ final class DashboardViewModel {
     private var didPromptWifi = false
     private var skipLiveColor = false
     var isBreathing = false
+    var isFlowing = false
 
     var connectionState: ConnectionState { bluetooth.connectionState }
 
@@ -87,9 +88,14 @@ final class DashboardViewModel {
         pendingUpdateTask?.cancel()
         if !isOn {
             isBreathing = false
+            isFlowing = false
         }
         if isBreathing && isOn {
-            publishMode(id: 4, color: selectedColor, breath: true)
+            bluetooth.sendColor(LampEffects.breathCommand())
+            return
+        }
+        if isFlowing && isOn {
+            bluetooth.sendColor(LampEffects.flowCommand())
             return
         }
 
@@ -128,11 +134,24 @@ final class DashboardViewModel {
 
     func runSavedMode(id: UInt8, color: Color, breath: Bool) {
         pendingUpdateTask?.cancel()
+        if id == 4 {
+            isFlowing = false
+            isBreathing = isOn
+            bluetooth.sendColor(LampEffects.breathCommand())
+            return
+        }
+        if id == 5 {
+            isBreathing = false
+            isFlowing = isOn
+            bluetooth.sendColor(LampEffects.flowCommand())
+            return
+        }
         if color.hexString != selectedColor.hexString {
             skipLiveColor = true
         }
         selectedColor = color
-        isBreathing = breath && isOn
+        isBreathing = false
+        isFlowing = false
         publishMode(id: id, color: color, breath: breath && isOn)
     }
 
@@ -151,6 +170,7 @@ final class DashboardViewModel {
 
     func applyFocusScene() {
         isBreathing = false
+        isFlowing = false
         isOn = true
         brightness = 0.9
         selectedColor = LuminaTheme.neonCyan
@@ -159,6 +179,7 @@ final class DashboardViewModel {
 
     func applyRelaxScene() {
         isBreathing = false
+        isFlowing = false
         isOn = true
         brightness = 0.4
         selectedColor = LuminaTheme.neonPurpleLight
@@ -167,6 +188,7 @@ final class DashboardViewModel {
 
     func applyPartyScene() {
         isBreathing = false
+        isFlowing = false
         isOn = true
         brightness = 1.0
         selectedColor = LuminaTheme.neonPink
@@ -176,6 +198,7 @@ final class DashboardViewModel {
     func turnOff() {
         isOn = false
         isBreathing = false
+        isFlowing = false
         brightness = 0
         sendUpdate(debounced: false)
     }

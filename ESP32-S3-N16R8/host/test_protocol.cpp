@@ -45,14 +45,22 @@ int main() {
   assert(packet[3] == 4);
   assert(std::memcmp(packet + 4, "Home", 4) == 0);
 
-  const uint8_t saveBreath[] = {0x03, 4, 124, 58, 237, 200, 1};
+  const uint8_t saveBreath[] = {0x03, 4, 124, 58, 237, 40, 220};
   LuminaProtocol::Command breath = LuminaProtocol::parse(saveBreath, sizeof(saveBreath));
   assert(breath.kind == LuminaProtocol::Command::mode);
   assert(breath.modeId == 4);
   assert(breath.breath);
   assert(!breath.recalls);
   assert(breath.red == 124 && breath.green == 58 && breath.blue == 237);
-  assert(breath.brightness == 200);
+  assert(breath.brightness == 40);
+  assert(breath.breathMax == 220);
+
+  const uint8_t flow[] = {0x05, 2, 255, 255, 0, 0, 0, 0, 255};
+  LuminaProtocol::Command flowing = LuminaProtocol::parse(flow, sizeof(flow));
+  assert(flowing.kind == LuminaProtocol::Command::flow);
+  assert(flowing.flowCount == 2);
+  assert(flowing.brightness == 255);
+  assert(flowing.flowRgb[0] == 255 && flowing.flowRgb[5] == 255);
 
   const uint8_t recallWarm[] = {0x03, 1};
   LuminaProtocol::Command warm = LuminaProtocol::parse(recallWarm, sizeof(recallWarm));

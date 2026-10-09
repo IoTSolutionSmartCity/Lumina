@@ -27,6 +27,7 @@ struct ColorWheelPicker: View {
         case soft = "Soft"
         case cool = "Cool"
         case breath = "Breath"
+        case flow = "Flow"
 
         var deviceId: UInt8 {
             switch self {
@@ -35,12 +36,13 @@ struct ColorWheelPicker: View {
             case .soft: return 2
             case .cool: return 3
             case .breath: return 4
+            case .flow: return 5
             }
         }
 
         var white: Color? {
             switch self {
-            case .color, .breath: return nil
+            case .color, .breath, .flow: return nil
             case .warm: return ColorWheelPicker.warmWhite
             case .soft: return ColorWheelPicker.softWhite
             case .cool: return ColorWheelPicker.coolWhite
@@ -52,13 +54,27 @@ struct ColorWheelPicker: View {
         VStack(spacing: LuminaTheme.Spacing.md) {
             header
 
-            Picker("Color mode", selection: $colorMode) {
-                ForEach(ColorMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: LuminaTheme.Spacing.sm) {
+                    ForEach(ColorMode.allCases, id: \.self) { mode in
+                        Button {
+                            colorMode = mode
+                        } label: {
+                            Text(mode.rawValue)
+                                .font(LuminaTheme.Typography.captionBold)
+                                .foregroundColor(colorMode == mode ? .white : LuminaTheme.textSecondary)
+                                .padding(.horizontal, 14)
+                                .frame(minHeight: 44)
+                                .background(
+                                    Capsule().fill(colorMode == mode ? LuminaTheme.neonPurple : Color.white.opacity(0.08))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(colorMode == mode ? .isSelected : [])
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-            .frame(minHeight: 44)
+            .accessibilityLabel("Color mode")
 
             if colorMode == .color {
                 colorWheel
@@ -83,8 +99,8 @@ struct ColorWheelPicker: View {
             }
             isBreathing.wrappedValue = mode == .breath
             breathDim = mode == .breath && !reduceMotion
-            let color = mode == .breath ? selectedColor : (mode.white ?? savedWheelColor)
-            if mode != .breath, color.hexString != selectedColor.hexString {
+            let color = mode == .breath || mode == .flow ? selectedColor : (mode.white ?? savedWheelColor)
+            if mode != .breath && mode != .flow, color.hexString != selectedColor.hexString {
                 selectedColor = color
             }
             guard !ignoreModeChange else {
@@ -183,7 +199,7 @@ struct ColorWheelPicker: View {
 
     private var whiteModePreview: some View {
         RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xl)
-            .fill(selectedColor)
+            .fill(previewFill)
             .frame(maxWidth: .infinity)
             .frame(height: 88)
             .opacity(colorMode == .breath && breathDim ? 0.35 : 1)
@@ -192,9 +208,20 @@ struct ColorWheelPicker: View {
                 value: breathDim
             )
             .overlay {
-                Text(modeTitle)
-                    .font(LuminaTheme.Typography.headline)
-                    .foregroundColor(.black.opacity(0.72))
+                if colorMode == .flow {
+                    HStack(spacing: 8) {
+                        ForEach(Array(LampEffects.flowHexes.enumerated()), id: \.offset) { _, hex in
+                            Circle()
+                                .fill(Color(hex: hex))
+                                .frame(width: 22, height: 22)
+                                .overlay(Circle().stroke(Color.black.opacity(0.25), lineWidth: 1))
+                        }
+                    }
+                } else {
+                    Text(modeTitle)
+                        .font(LuminaTheme.Typography.headline)
+                        .foregroundColor(.black.opacity(0.72))
+                }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(modeTitle)
@@ -207,6 +234,15 @@ struct ColorWheelPicker: View {
         case .soft: return "Soft white"
         case .cool: return "Cool white"
         case .breath: return "Breathing"
+        case .flow: return "Flowing colors"
+        }
+    }
+
+    private var previewFill: Color {
+        switch colorMode {
+        case .breath: return LampEffects.breathColor
+        case .flow: return LampEffects.flowColors.first ?? selectedColor
+        default: return selectedColor
         }
     }
 
