@@ -57,7 +57,7 @@ struct LampPreview3D: View {
                     Spacer()
                     Text(isOn ? "\(Int(brightness * 100))% brightness" : "Lamp off")
                         .font(LuminaTheme.Typography.captionBold)
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(LuminaTheme.textSecondary)
                         .padding(.bottom, LuminaTheme.Spacing.md)
                 }
             }
@@ -125,7 +125,7 @@ struct LampPreviewPlaceholder: View {
                 AnimatedGlowIcon(systemName: "lamp.desk.fill", color: LuminaTheme.neonPurple, size: 48)
                 Text("Lamp Preview")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
         }
         .frame(height: 300)

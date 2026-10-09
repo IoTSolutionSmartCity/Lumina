@@ -13,6 +13,7 @@
 #include "HomeSpan.h"
 #include "LuminaWifi.h"
 #include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaBle.h"
+#include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaModes.h"
 #include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaWifiScan.h"
 #include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/BoardLed.h"
 
@@ -286,7 +287,10 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
     BoardLed::celebrateWifi();
   } else if (command.kind == LuminaProtocol::Command::scan) {
     publishWifiScan();
+  } else if (command.kind == LuminaProtocol::Command::mode) {
+    LuminaModes::handle(command, applyRgb);
   } else if (command.kind == LuminaProtocol::Command::color) {
+    LuminaModes::handle(command, applyRgb);
     applyRgb(command.red, command.green, command.blue);
     BoardLed::setMirror(command.debugLed, command.red, command.green, command.blue);
   }
@@ -294,6 +298,7 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
 
 void loop() {
   BoardLed::update();
+  LuminaModes::tick(applyRgb);
   LuminaProtocol::Command command;
   if (LuminaBle::takeEvent(command)) {
     handleBleCommand(command);

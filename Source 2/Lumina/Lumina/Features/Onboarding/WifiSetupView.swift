@@ -44,6 +44,13 @@ struct WifiSetupView: View {
         }
         .navigationTitle("Lamp Wi-Fi")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if !saved {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Not now") { onFinished() }
+                }
+            }
+        }
         .preferredColorScheme(.dark)
         .task {
             await refresh()
@@ -62,7 +69,7 @@ struct WifiSetupView: View {
                         .foregroundColor(.white)
                     Text("The lamp lists the Wi-Fi it can join. A password saved in Lumina is sent for you. A new network asks for the password.")
                         .font(LuminaTheme.Typography.subheadline)
-                        .foregroundColor(.white.opacity(0.65))
+                        .foregroundColor(LuminaTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -88,16 +95,9 @@ struct WifiSetupView: View {
                     prompt = .manual
                 }
                 .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(LuminaTheme.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .disabled(isSaving)
-
-                Button("Not now") {
-                    onFinished()
-                }
-                .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.55))
-                .frame(maxWidth: .infinity, minHeight: 44)
             }
             .padding(LuminaTheme.Spacing.lg)
         }
@@ -147,13 +147,13 @@ struct WifiSetupView: View {
                             .lineLimit(1)
                         Text(detail(for: network, savedPassword: savedPassword != nil))
                             .font(LuminaTheme.Typography.caption)
-                            .foregroundColor(.white.opacity(0.55))
+                            .foregroundColor(LuminaTheme.textSecondary)
                     }
                     Spacer(minLength: LuminaTheme.Spacing.sm)
                     if network.secured && savedPassword == nil {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.55))
+                            .foregroundColor(LuminaTheme.textSecondary)
                     }
                 }
                 .contentShape(Rectangle())
@@ -191,9 +191,9 @@ struct WifiSetupView: View {
                 Text("Lamp is joining Wi-Fi")
                     .font(LuminaTheme.Typography.title)
                     .foregroundColor(.white)
-                Text("On the iPhone for your HomePod mini, open the Home app, add an accessory, and enter this code.")
+                Text("Open the Home app, add an accessory, and enter this code.")
                     .font(LuminaTheme.Typography.subheadline)
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(LuminaTheme.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, LuminaTheme.Spacing.lg)
@@ -225,7 +225,7 @@ struct WifiSetupView: View {
                         .foregroundColor(.white)
                     Text(promptMessage(prompt))
                         .font(LuminaTheme.Typography.subheadline)
-                        .foregroundColor(.white.opacity(0.65))
+                        .foregroundColor(LuminaTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
 
                     if case .manual = prompt {

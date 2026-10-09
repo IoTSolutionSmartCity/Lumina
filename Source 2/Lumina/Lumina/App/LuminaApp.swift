@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct LuminaApp: App {
     @State private var session = AppSession()
+    @State private var island = IslandCenter.shared
 
     var body: some Scene {
         WindowGroup {
@@ -22,27 +23,43 @@ struct LuminaApp: App {
                 }
             }
             .preferredColorScheme(.dark)
-            .environment(session)
-            .overlay {
+            .overlay(alignment: .top) {
                 LuminaIsland()
+                    .zIndex(1)
             }
+            .statusBarHidden(island.notice != nil)
+            .environment(session)
         }
     }
 }
 
 struct MainTabView: View {
+    @State private var tab = 0
+    @State private var island = IslandCenter.shared
+
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             MainDashboardView()
                 .tabItem {
                     Label("Lamp", systemImage: "lamp.desk.fill")
                 }
+                .tag(0)
 
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
+                .tag(1)
         }
         .tint(LuminaTheme.neonPurple)
+        .onChange(of: island.routeToken) { _, token in
+            guard token > 0 else { return }
+            switch island.route {
+            case .device, .discover:
+                tab = 1
+            case nil:
+                break
+            }
+        }
     }
 }

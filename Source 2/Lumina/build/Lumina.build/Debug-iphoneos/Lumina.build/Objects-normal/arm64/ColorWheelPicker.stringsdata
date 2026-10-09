@@ -1,0 +1,112 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/ColorWheelPicker.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Color wheel",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hex %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "Swipe up or down to adjust hue",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove current color from presets",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add current color to presets",
+        "location": {
+          "startingColumn": 94,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done editing presets",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit presets",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "Color",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "#%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "Presets",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preset color #%@",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove preset color #%@",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 207
+        }
+      }
+    ]
+  },
+  "version": 1
+}

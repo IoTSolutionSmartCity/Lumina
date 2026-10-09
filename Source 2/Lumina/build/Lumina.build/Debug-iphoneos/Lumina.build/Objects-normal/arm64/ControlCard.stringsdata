@@ -1,0 +1,96 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/ControlCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Lamp power",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "On",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Off",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Double tap to turn off",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "Double tap to turn on",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "ON",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "OFF",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lamp is On",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lamp is Off",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to turn off",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to wake your lamp",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 57
+        }
+      }
+    ]
+  },
+  "version": 1
+}

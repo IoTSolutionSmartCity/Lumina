@@ -1,0 +1,160 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Onboarding/WifiSetupView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Lamp Wi-Fi",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Other network",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not now",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose a network",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "The lamp lists the Wi-Fi it can join. A password saved in Lumina is sent for you. A new network asks for the password.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Looking for networks…",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "No networks found.",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter a different password for %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "HomeKit code %@",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lamp is joining Wi-Fi",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "On the iPhone for your HomePod mini, open the Home app, add an accessory, and enter this code.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 194
+        }
+      },
+      {
+        "comment": "",
+        "key": "Password",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 278
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wi-Fi name",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide password",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show password",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "Password",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "Password",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 282
+        }
+      }
+    ]
+  },
+  "version": 1
+}

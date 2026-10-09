@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct MainDashboardView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var viewModel = DashboardViewModel()
-    @State private var showSettings = false
+    @State private var breathLow = false
 
     var body: some View {
         ZStack {
@@ -15,15 +17,23 @@ struct MainDashboardView: View {
                     VStack(spacing: LuminaTheme.Spacing.lg) {
                         LampPreview3D(
                             color: viewModel.selectedColor,
-                            brightness: viewModel.brightness,
+                            brightness: viewModel.isBreathing && breathLow ? viewModel.brightness * 0.22 : viewModel.brightness,
                             isOn: viewModel.isOn
                         )
+                        .animation(viewModel.isBreathing && breathLow ? .easeInOut(duration: 2.4).repeatForever(autoreverses: true) : nil, value: breathLow)
+                        .onChange(of: viewModel.isBreathing) { _, on in
+                            breathLow = on && !reduceMotion
+                        }
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
 
                         ControlCard(
                             brightness: $viewModel.brightness,
                             selectedColor: $viewModel.selectedColor,
-                            isOn: $viewModel.isOn
+                            isOn: $viewModel.isOn,
+                            isBreathing: $viewModel.isBreathing,
+                            onMode: { id, color, breath in
+                                viewModel.runSavedMode(id: id, color: color, breath: breath)
+                            }
                         )
 
                         quickActionsSection
@@ -36,6 +46,19 @@ struct MainDashboardView: View {
         }
         .onAppear {
             viewModel.onAppear()
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            var firstPass = true
+            while !Task.isCancelled {
+                let started = ContinuousClock.now
+                await viewModel.refreshLink(reportFailure: firstPass)
+                firstPass = false
+                let remaining = Duration.seconds(10) - started.duration(to: .now)
+                if remaining > .zero {
+                    try? await Task.sleep(for: remaining)
+                }
+            }
         }
         .onChange(of: viewModel.brightness) { _, _ in
             viewModel.sendUpdate()
@@ -67,27 +90,12 @@ struct MainDashboardView: View {
                 if let device = viewModel.connectedDevice {
                     Text(device.name)
                         .font(LuminaTheme.Typography.caption)
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(LuminaTheme.textSecondary)
                 } else {
                     Text("No device connected")
                         .font(LuminaTheme.Typography.caption)
-                        .foregroundColor(.white.opacity(0.55))
+                        .foregroundColor(LuminaTheme.textSecondary)
                 }
-            }
-
-            Spacer()
-
-            Button {
-                showSettings = true
-            } label: {
-                GlowIcon(systemName: "gearshape.fill", color: .white.opacity(0.7), size: 22)
-                    .frame(width: 44, height: 44)
-                    .glassCard(cornerRadius: LuminaTheme.CornerRadius.full)
-            }
-            .buttonStyle(.pressable)
-            .accessibilityLabel("Settings")
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
             }
         }
         .padding(.horizontal, LuminaTheme.Spacing.lg)
@@ -141,7 +149,7 @@ struct SceneButton: View {
 
                 Text(title)
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
+                    .foregroundColor(isActive ? .white : LuminaTheme.textSecondary)
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isActive)
         }

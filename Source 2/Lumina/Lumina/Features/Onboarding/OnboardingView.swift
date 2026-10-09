@@ -45,7 +45,7 @@ struct OnboardingView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Skip") { finish() }
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(LuminaTheme.textSecondary)
                 }
             }
             .fullScreenCover(isPresented: $viewModel.showWifiSetup) {
@@ -75,7 +75,7 @@ struct OnboardingView: View {
 
             Text(viewModel.problemMessage ?? "Power on the lamp, then tap the one you want.")
                 .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.65))
+                .foregroundColor(LuminaTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -116,7 +116,7 @@ struct OnboardingView: View {
                                         .foregroundColor(.white)
                                     Text(signalLabel(device.rssi))
                                         .font(LuminaTheme.Typography.caption)
-                                        .foregroundColor(.white.opacity(0.55))
+                                        .foregroundColor(LuminaTheme.textSecondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
@@ -160,7 +160,7 @@ struct OnboardingView: View {
             if viewModel.discoveredDevices.count > 1 {
                 Text("\(viewModel.discoveredDevices.count) lamps nearby. Tap the one you want.")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.45))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
         }
     }
@@ -186,26 +186,36 @@ struct OnboardingView: View {
 }
 
 private struct ScanHalo: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var expanded = false
 
     var body: some View {
         ZStack {
-            ForEach(0..<3, id: \.self) { index in
+            if reduceMotion {
                 Circle()
                     .stroke(LuminaTheme.neonPurple.opacity(0.35), lineWidth: 1.5)
                     .frame(width: 160, height: 160)
-                    .scaleEffect(expanded ? 1.85 : 0.72)
-                    .opacity(expanded ? 0 : 0.8)
-                    .animation(
-                        .easeOut(duration: 2.4)
-                            .repeatForever(autoreverses: false)
-                            .delay(Double(index) * 0.6),
-                        value: expanded
-                    )
+            } else {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .stroke(LuminaTheme.neonPurple.opacity(0.35), lineWidth: 1.5)
+                        .frame(width: 160, height: 160)
+                        .scaleEffect(expanded ? 1.85 : 0.72)
+                        .opacity(expanded ? 0 : 0.8)
+                        .animation(
+                            .easeOut(duration: 2.4)
+                                .repeatForever(autoreverses: false)
+                                .delay(Double(index) * 0.6),
+                            value: expanded
+                        )
+                }
             }
         }
         .allowsHitTesting(false)
-        .onAppear { expanded = true }
+        .onAppear {
+            guard !reduceMotion else { return }
+            expanded = true
+        }
         .accessibilityHidden(true)
     }
 }

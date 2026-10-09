@@ -21,9 +21,11 @@ enum ConnectionState: Equatable {
 
 enum LampCommand: Equatable {
     case setColor(red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, power: Bool, debugLed: Bool)
+    case runMode(id: UInt8, red: UInt8, green: UInt8, blue: UInt8, brightness: UInt8, breath: Bool)
     case setWifi(ssid: String, password: String)
 
     static let colorOpcode: UInt8 = 0x02
+    static let modeOpcode: UInt8 = 0x03
     static let wifiOpcode: UInt8 = 0x10
     static let scanOpcode: UInt8 = 0x11
 
@@ -31,6 +33,8 @@ enum LampCommand: Equatable {
         switch self {
         case .setColor(let red, let green, let blue, let brightness, let power, let debugLed):
             return Data([Self.colorOpcode, red, green, blue, brightness, power ? 1 : 0, debugLed ? 1 : 0])
+        case .runMode(let id, let red, let green, let blue, let brightness, let breath):
+            return Data([Self.modeOpcode, id, red, green, blue, brightness, breath ? 1 : 0])
         case .setWifi(let ssid, let password):
             let ssidBytes = Data(ssid.utf8)
             let passwordBytes = Data(password.utf8)
@@ -217,9 +221,8 @@ final class BluetoothManager: NSObject {
         connectionState == .connected && connectedDevice?.id == id
     }
 
-    /// Reconnect a lamp this phone has seen before. iOS can reach it by the saved
-    /// identifier, so this does not keep the radio scanning on a timer.
-    func reconnect(to id: UUID, timeout: TimeInterval = 8) async {
+    /// Reconnect a lamp this phone has seen before, by its saved identifier.
+    func reconnect(to id: UUID, timeout: TimeInterval = 8, reportFailure: Bool = true) async {
         if isLive(id: id) { return }
         if let current = connectedPeripheral, current.identifier != id {
             centralManager.cancelPeripheralConnection(current)
@@ -246,7 +249,7 @@ final class BluetoothManager: NSObject {
             try? await Task.sleep(for: .milliseconds(200))
         }
         stopScanning()
-        if connectionState != .connected {
+        if connectionState != .connected, reportFailure {
             connectionState = .error("Lamp not nearby")
             problemMessage = "The lamp is not advertising. Power it on and try again."
         }
@@ -268,7 +271,9 @@ final class BluetoothManager: NSObject {
 
     func sendColor(_ command: LampCommand) {
         guard let data = command.data else { return }
-        outgoing.removeAll { $0.continuation == nil && $0.data.first == LampCommand.colorOpcode }
+        outgoing.removeAll {
+            $0.continuation == nil && ($0.data.first == LampCommand.colorOpcode || $0.data.first == LampCommand.modeOpcode)
+        }
         outgoing.append(Outgoing(data: data, continuation: nil))
         pump()
     }

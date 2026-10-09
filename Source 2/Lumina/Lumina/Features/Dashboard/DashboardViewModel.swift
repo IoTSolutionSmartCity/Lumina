@@ -16,6 +16,9 @@ final class DashboardViewModel {
     private let deviceRepository = DeviceRepository.shared
     private var pendingUpdateTask: Task<Void, Never>?
     private var colorPulseTask: Task<Void, Never>?
+    private var didPromptWifi = false
+    private var skipLiveColor = false
+    var isBreathing = false
 
     var connectionState: ConnectionState { bluetooth.connectionState }
 
@@ -28,19 +31,19 @@ final class DashboardViewModel {
             selectedColor = first.color
             isOn = first.isOn
         }
-        if !showOnboarding {
-            Task { await reconnect() }
-        }
     }
 
-    private func reconnect() async {
-        if let id = deviceRepository.selectedDevice?.id ?? deviceRepository.devices.first?.id {
-            await bluetooth.reconnect(to: id)
-        }
+    /// Looks for the saved lamp. Later passes stay quiet so a miss does not
+    /// replace the screen with an error every 10 seconds.
+    func refreshLink(reportFailure: Bool) async {
+        guard !showOnboarding else { return }
+        guard let id = deviceRepository.selectedDevice?.id ?? deviceRepository.devices.first?.id else { return }
+        await bluetooth.reconnect(to: id, timeout: 10, reportFailure: reportFailure)
         if bluetooth.connectionState == .connected, let discovered = bluetooth.connectedDevice {
             remember(discovered)
         }
-        if !WifiPasswordStore.hasChosen {
+        if bluetooth.connectionState == .connected, !didPromptWifi, !WifiPasswordStore.hasChosen {
+            didPromptWifi = true
             showWifiSetup = true
         }
     }
@@ -77,7 +80,18 @@ final class DashboardViewModel {
     }
 
     func sendUpdate(debounced: Bool = true) {
+        if skipLiveColor {
+            skipLiveColor = false
+            return
+        }
         pendingUpdateTask?.cancel()
+        if !isOn {
+            isBreathing = false
+        }
+        if isBreathing && isOn {
+            publishMode(id: 4, color: selectedColor, breath: true)
+            return
+        }
 
         guard debounced else {
             performSendUpdate()
@@ -112,7 +126,31 @@ final class DashboardViewModel {
         ))
     }
 
+    func runSavedMode(id: UInt8, color: Color, breath: Bool) {
+        pendingUpdateTask?.cancel()
+        if color.hexString != selectedColor.hexString {
+            skipLiveColor = true
+        }
+        selectedColor = color
+        isBreathing = breath && isOn
+        publishMode(id: id, color: color, breath: breath && isOn)
+    }
+
+    private func publishMode(id: UInt8, color: Color, breath: Bool) {
+        let components = color.components
+        let level = UInt8(min(255, max(0, Int((brightness * 255).rounded()))))
+        bluetooth.sendColor(.runMode(
+            id: id,
+            red: components.red,
+            green: components.green,
+            blue: components.blue,
+            brightness: level,
+            breath: breath
+        ))
+    }
+
     func applyFocusScene() {
+        isBreathing = false
         isOn = true
         brightness = 0.9
         selectedColor = LuminaTheme.neonCyan
@@ -120,6 +158,7 @@ final class DashboardViewModel {
     }
 
     func applyRelaxScene() {
+        isBreathing = false
         isOn = true
         brightness = 0.4
         selectedColor = LuminaTheme.neonPurpleLight
@@ -127,6 +166,7 @@ final class DashboardViewModel {
     }
 
     func applyPartyScene() {
+        isBreathing = false
         isOn = true
         brightness = 1.0
         selectedColor = LuminaTheme.neonPink
@@ -135,6 +175,7 @@ final class DashboardViewModel {
 
     func turnOff() {
         isOn = false
+        isBreathing = false
         brightness = 0
         sendUpdate(debounced: false)
     }

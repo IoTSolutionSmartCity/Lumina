@@ -1,0 +1,48 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Onboarding/OnboardingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Skip",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lumina",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Searching for the lamp",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connect to %@",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld lamps nearby. Tap the one you want.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 161
+        }
+      }
+    ]
+  },
+  "version": 1
+}

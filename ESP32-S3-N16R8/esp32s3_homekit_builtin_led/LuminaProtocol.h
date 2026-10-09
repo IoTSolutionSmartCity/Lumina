@@ -6,6 +6,9 @@
 
 // Shared by the ESP32 firmware and the Lumina app.
 // Color:  0x02, R, G, B, brightness, power, debugLed
+// Mode:   0x03, id, R, G, B, brightness, breath
+//         id 0 color, 1 warm, 2 soft, 3 cool, 4 breath.
+//         A 2-byte packet (0x03, id) runs the copy saved on the lamp.
 // Wi-Fi:  0x10, ssidLen, ssid..., passwordLen, password...
 // Scan:   0x11 from the app. The lamp replies on the scan characteristic:
 //         0x11, flags, rssi, ssidLen, ssid...
@@ -13,16 +16,21 @@
 namespace LuminaProtocol {
 
 static constexpr uint8_t colorCommand = 0x02;
+static constexpr uint8_t modeCommand = 0x03;
 static constexpr uint8_t wifiCommand = 0x10;
 static constexpr uint8_t scanCommand = 0x11;
 static constexpr size_t maxSsid = 32;
 static constexpr size_t maxPassword = 64;
 
 struct Command {
-  enum Kind { invalid, color, wifi, scan } kind;
+  enum Kind { invalid, color, wifi, scan, mode } kind;
   uint8_t red;
   uint8_t green;
   uint8_t blue;
+  uint8_t brightness;
+  uint8_t modeId;
+  bool breath;
+  bool recalls;
   bool debugLed;
   char ssid[maxSsid + 1];
   char password[maxPassword + 1];
@@ -55,6 +63,20 @@ inline Command parse(const uint8_t *data, size_t length) {
     command.green = static_cast<uint8_t>(green);
     command.blue = static_cast<uint8_t>(blue);
     command.debugLed = length >= 7 && data[6] != 0;
+    return command;
+  }
+
+  if (data[0] == modeCommand && length >= 2 && data[1] <= 4) {
+    command.kind = Command::mode;
+    command.modeId = data[1];
+    command.recalls = length < 7;
+    if (!command.recalls) {
+      command.red = data[2];
+      command.green = data[3];
+      command.blue = data[4];
+      command.brightness = data[5];
+      command.breath = data[6] != 0;
+    }
     return command;
   }
 

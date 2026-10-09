@@ -45,6 +45,24 @@ int main() {
   assert(packet[3] == 4);
   assert(std::memcmp(packet + 4, "Home", 4) == 0);
 
+  const uint8_t saveBreath[] = {0x03, 4, 124, 58, 237, 200, 1};
+  LuminaProtocol::Command breath = LuminaProtocol::parse(saveBreath, sizeof(saveBreath));
+  assert(breath.kind == LuminaProtocol::Command::mode);
+  assert(breath.modeId == 4);
+  assert(breath.breath);
+  assert(!breath.recalls);
+  assert(breath.red == 124 && breath.green == 58 && breath.blue == 237);
+  assert(breath.brightness == 200);
+
+  const uint8_t recallWarm[] = {0x03, 1};
+  LuminaProtocol::Command warm = LuminaProtocol::parse(recallWarm, sizeof(recallWarm));
+  assert(warm.kind == LuminaProtocol::Command::mode);
+  assert(warm.modeId == 1);
+  assert(warm.recalls);
+
+  const uint8_t badMode[] = {0x03, 9};
+  assert(LuminaProtocol::parse(badMode, sizeof(badMode)).kind == LuminaProtocol::Command::invalid);
+
   std::cout << "lumina protocol ok\n";
   return 0;
 }

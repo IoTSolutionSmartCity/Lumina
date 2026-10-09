@@ -8,6 +8,8 @@ struct SettingsView: View {
     @State private var showDeviceDetail: LampDevice?
     @State private var showAddDevice = false
     @State private var showSignOutConfirmation = false
+    @State private var island = IslandCenter.shared
+    @State private var handledRoute = 0
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -35,6 +37,10 @@ struct SettingsView: View {
                     showDeviceDetail = nil
                 }
             }
+            .onAppear { openIslandRoute() }
+            .onChange(of: island.routeToken) { _, _ in
+                openIslandRoute()
+            }
             .sheet(isPresented: $showAddDevice) {
                 OnboardingView(isOnboarded: Binding(
                     get: { session.isOnboarded },
@@ -61,7 +67,7 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                     Text("Add your Lumina ESP32-S3 lamp to control it from this phone.")
                         .font(LuminaTheme.Typography.caption)
-                        .foregroundColor(.white.opacity(0.55))
+                        .foregroundColor(LuminaTheme.textSecondary)
                 }
                 .padding(.vertical, LuminaTheme.Spacing.sm)
                 .listRowBackground(LuminaTheme.darkSurface)
@@ -93,7 +99,7 @@ struct SettingsView: View {
 
                             Text(live ? "Connected" : "Saved")
                                 .font(LuminaTheme.Typography.caption)
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
 
                         Spacer()
@@ -128,7 +134,7 @@ struct SettingsView: View {
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("Devices")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
     }
 
@@ -156,7 +162,7 @@ struct SettingsView: View {
 
                         Text(userEmail)
                             .font(LuminaTheme.Typography.caption)
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(LuminaTheme.textSecondary)
                     }
                 }
             }
@@ -175,7 +181,7 @@ struct SettingsView: View {
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("Account")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
     }
 
@@ -189,10 +195,10 @@ struct SettingsView: View {
                 }
         } header: {
             Text("Debug")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         } footer: {
             Text("When this is on, the LED on the ESP32-S3 board shows the color from the lamp controls. Turn it off to restore the red, orange, and green status light.")
-                .foregroundColor(.white.opacity(0.45))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
         .listRowBackground(LuminaTheme.darkSurface)
     }
@@ -204,23 +210,12 @@ struct SettingsView: View {
                     .foregroundColor(.white)
                 Spacer()
                 Text("1.0.0")
-                    .foregroundColor(.white.opacity(0.5))
-            }
-            .listRowBackground(LuminaTheme.darkSurface)
-
-            NavigationLink {
-                Text("Help & Support")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(LuminaTheme.deepNavy.ignoresSafeArea())
-            } label: {
-                Text("Help & Support")
-                    .foregroundColor(.white)
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("App")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
     }
 
@@ -231,12 +226,12 @@ struct SettingsView: View {
                     .foregroundColor(.white)
                 Spacer()
                 Text("Made with ❤️")
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
             .listRowBackground(LuminaTheme.darkSurface)
         } header: {
             Text("About")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
     }
 
@@ -270,6 +265,24 @@ struct SettingsView: View {
         ))
     }
 
+    private func openIslandRoute() {
+        guard island.routeToken > handledRoute else { return }
+        switch island.route {
+        case .device:
+            handledRoute = island.routeToken
+            if let device = deviceRepository.selectedDevice ?? deviceRepository.devices.first {
+                showDeviceDetail = device
+            } else {
+                showAddDevice = true
+            }
+        case .discover:
+            handledRoute = island.routeToken
+            showAddDevice = true
+        case nil:
+            break
+        }
+    }
+
     private func signOut() {
         session.signOut()
         dismiss()
@@ -284,6 +297,7 @@ struct DeviceDetailView: View {
     @State private var isConnecting = false
     @State private var statusMessage: String?
     @State private var showWifi = false
+    @State private var showForgetConfirmation = false
 
     private var isLive: Bool { bluetooth.isLive(id: device.id) }
 
@@ -298,25 +312,25 @@ struct DeviceDetailView: View {
                             Text("Manufacturer")
                             Spacer()
                             Text(device.manufacturer)
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
                         HStack {
                             Text("Model")
                             Spacer()
                             Text(device.model)
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
                         HStack {
                             Text("Serial Number")
                             Spacer()
                             Text(device.serialNumber)
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
                         HStack {
                             Text("Pairing Code")
                             Spacer()
                             Text(device.pairingCode)
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
                         HStack {
                             Text("Bluetooth")
@@ -328,7 +342,7 @@ struct DeviceDetailView: View {
                                         .frame(width: 8, height: 8)
                                 }
                                 Text(isLive ? "Connected" : "Not connected")
-                                    .foregroundColor(.white.opacity(0.5))
+                                    .foregroundColor(LuminaTheme.textSecondary)
                             }
                         }
                     } header: {
@@ -359,7 +373,7 @@ struct DeviceDetailView: View {
                         if let statusMessage {
                             Text(statusMessage)
                                 .font(LuminaTheme.Typography.caption)
-                                .foregroundColor(.white.opacity(0.55))
+                                .foregroundColor(LuminaTheme.textSecondary)
                         }
 
                         Button {
@@ -379,14 +393,13 @@ struct DeviceDetailView: View {
                         Text("Connection")
                     } footer: {
                         Text("Green means this phone is linked to the lamp over Bluetooth right now. Tap Scan and connect, then change the Wi-Fi name and password.")
-                            .foregroundColor(.white.opacity(0.45))
+                            .foregroundColor(LuminaTheme.textSecondary)
                     }
                     .listRowBackground(LuminaTheme.darkSurface)
 
                     Section {
                         Button(role: .destructive) {
-                            onForget()
-                            dismiss()
+                            showForgetConfirmation = true
                         } label: {
                             HStack {
                                 Spacer()
@@ -413,6 +426,15 @@ struct DeviceDetailView: View {
                 NavigationStack {
                     WifiSetupView(onFinished: { showWifi = false })
                 }
+            }
+            .confirmationDialog("Forget this lamp?", isPresented: $showForgetConfirmation, titleVisibility: .visible) {
+                Button("Forget", role: .destructive) {
+                    onForget()
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This phone will no longer control this lamp until you add it again.")
             }
         }
     }

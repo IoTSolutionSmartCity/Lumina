@@ -1,0 +1,56 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Authentication/SignInView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Sign In Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 41
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lumina",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Smart Lamp Companion",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign in with Google",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Skip for now",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 112
+        }
+      }
+    ]
+  },
+  "version": 1
+}

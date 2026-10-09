@@ -1,0 +1,289 @@
+{
+  "" : {
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/Lumina-primary.dia",
+    "emit-module-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/Lumina-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/Lumina-primary-emit-module.dia",
+    "pch" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/Lumina-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/Lumina-primary.swiftdeps"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/App/AppSession.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/AppSession~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/App/LuminaApp.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaApp~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Extensions/HapticManager.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HapticManager~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Models/LampDevice.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampDevice~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Models/UserProfile.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/UserProfile~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Repositories/DeviceRepository.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DeviceRepository~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Services/BluetoothManager.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/BluetoothManager~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Services/HomeKitManager.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/HomeKitManager~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Core/Services/WifiPasswordStore.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiPasswordStore~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/ColorWheelPicker.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ColorWheelPicker~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/ConnectionBadge.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ConnectionBadge~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/GlassCard.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassCard~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/GlassSlider.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlassSlider~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/GlowIcon.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GlowIcon~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/LuminaIsland.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaIsland~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/NeonButton.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/NeonButton~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/LuminaTheme.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LuminaTheme~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Authentication/SignInView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SignInView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/ControlCard.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ControlCard~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/DashboardViewModel.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/DashboardViewModel~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/LampPreview3D.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/LampPreview3D~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/MainDashboardView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/MainDashboardView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Onboarding/OnboardingView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Onboarding/OnboardingViewModel.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/OnboardingViewModel~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Onboarding/WifiSetupView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/WifiSetupView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Settings/ProfileView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/ProfileView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Settings/SettingsView.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/build/Lumina.build/Debug-iphoneos/Lumina.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

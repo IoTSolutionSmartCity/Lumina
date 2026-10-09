@@ -3,19 +3,104 @@ import SwiftUI
 struct ColorWheelPicker: View {
     @Binding var selectedColor: Color
     var onColorChange: ((Color) -> Void)?
+    var isBreathing: Binding<Bool> = .constant(false)
+    var onMode: ((UInt8, Color, Bool) -> Void)?
 
     @State private var isDragging = false
     @State private var presetHexColors: [String] = ColorWheelPicker.defaultPresetHexColors
     @State private var isEditingPresets = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var colorMode: ColorMode = .color
+    @State private var savedWheelColor = LuminaTheme.neonPurple
+    @State private var breathDim = false
+    @State private var ignoreModeChange = true
 
     private static let presetStorageKey = "colorWheelPresetHexColors"
     private static let defaultPresetHexColors = ["7C3AED", "06B6D4", "EC4899", "10B981", "F59E0B", "FFFFFF"]
+    private static let warmWhite = Color(hex: "FFB46E")
+    private static let softWhite = Color(hex: "F6F1E7")
+    private static let coolWhite = Color(hex: "D6E8FF")
+
+    private enum ColorMode: String, CaseIterable {
+        case color = "Color"
+        case warm = "Warm"
+        case soft = "Soft"
+        case cool = "Cool"
+        case breath = "Breath"
+
+        var deviceId: UInt8 {
+            switch self {
+            case .color: return 0
+            case .warm: return 1
+            case .soft: return 2
+            case .cool: return 3
+            case .breath: return 4
+            }
+        }
+
+        var white: Color? {
+            switch self {
+            case .color, .breath: return nil
+            case .warm: return ColorWheelPicker.warmWhite
+            case .soft: return ColorWheelPicker.softWhite
+            case .cool: return ColorWheelPicker.coolWhite
+            }
+        }
+    }
 
     var body: some View {
         VStack(spacing: LuminaTheme.Spacing.md) {
             header
 
-            GeometryReader { geometry in
+            Picker("Color mode", selection: $colorMode) {
+                ForEach(ColorMode.allCases, id: \.self) { mode in
+                    Text(mode.rawValue).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(minHeight: 44)
+
+            if colorMode == .color {
+                colorWheel
+            } else {
+                whiteModePreview
+            }
+
+            presetColors
+        }
+        .onAppear {
+            loadPresets()
+            if let match = ColorMode.allCases.first(where: { $0.white?.hexString == selectedColor.hexString }) {
+                colorMode = match
+            } else {
+                savedWheelColor = selectedColor
+                ignoreModeChange = false
+            }
+        }
+        .onChange(of: colorMode) { oldMode, mode in
+            if oldMode == .color {
+                savedWheelColor = selectedColor
+            }
+            isBreathing.wrappedValue = mode == .breath
+            breathDim = mode == .breath && !reduceMotion
+            let color = mode == .breath ? selectedColor : (mode.white ?? savedWheelColor)
+            if mode != .breath, color.hexString != selectedColor.hexString {
+                selectedColor = color
+            }
+            guard !ignoreModeChange else {
+                ignoreModeChange = false
+                return
+            }
+            onMode?(mode.deviceId, color, mode == .breath)
+            HapticManager.shared.selection()
+        }
+        .onDisappear {
+            isBreathing.wrappedValue = false
+        }
+    }
+
+    private var colorWheel: some View {
+        GeometryReader { geometry in
                 let size = min(geometry.size.width, geometry.size.height)
                 let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 ZStack {
@@ -68,11 +153,14 @@ struct ColorWheelPicker: View {
                             isDragging = true
                             let color = colorAt(point: value.location, in: geometry.size, wheelDiameter: size)
                             selectedColor = color
+                            savedWheelColor = color
                             onColorChange?(color)
                         }
                         .onEnded { value in
                             selectedColor = colorAt(point: value.location, in: geometry.size, wheelDiameter: size)
+                            savedWheelColor = selectedColor
                             onColorChange?(selectedColor)
+                            onMode?(ColorMode.color.deviceId, selectedColor, false)
                             isDragging = false
                             HapticManager.shared.selection()
                         }
@@ -90,11 +178,36 @@ struct ColorWheelPicker: View {
                     }
                 }
             }
-            .aspectRatio(1, contentMode: .fit)
+        .aspectRatio(1, contentMode: .fit)
+    }
 
-            presetColors
+    private var whiteModePreview: some View {
+        RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xl)
+            .fill(selectedColor)
+            .frame(maxWidth: .infinity)
+            .frame(height: 88)
+            .opacity(colorMode == .breath && breathDim ? 0.35 : 1)
+            .animation(
+                colorMode == .breath && breathDim ? .easeInOut(duration: 2).repeatForever(autoreverses: true) : nil,
+                value: breathDim
+            )
+            .overlay {
+                Text(modeTitle)
+                    .font(LuminaTheme.Typography.headline)
+                    .foregroundColor(.black.opacity(0.72))
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(modeTitle)
+    }
+
+    private var modeTitle: String {
+        switch colorMode {
+        case .color: return "Color"
+        case .warm: return "Warm white"
+        case .soft: return "Soft white"
+        case .cool: return "Cool white"
+        case .breath: return "Breathing"
         }
-        .onAppear(perform: loadPresets)
     }
 
     private var header: some View {
@@ -105,7 +218,7 @@ struct ColorWheelPicker: View {
                     .foregroundColor(.white.opacity(0.75))
                 Text("#\(selectedColor.hexString)")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
 
             Spacer()
@@ -136,7 +249,7 @@ struct ColorWheelPicker: View {
             } label: {
                 Image(systemName: isEditingPresets ? "checkmark" : "slider.horizontal.3")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(LuminaTheme.textSecondary)
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
@@ -151,7 +264,7 @@ struct ColorWheelPicker: View {
             HStack {
                 Text("Presets")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(LuminaTheme.textSecondary)
                 Spacer()
                 if isEditingPresets {
                     Button("Reset") {
@@ -171,7 +284,7 @@ struct ColorWheelPicker: View {
                         ZStack(alignment: .topTrailing) {
                             Circle()
                                 .fill(color)
-                                .frame(width: 36, height: 36)
+                                .frame(width: 44, height: 44)
                                 .overlay(
                                     Circle().stroke(
                                         isSelected ? Color.white : Color.white.opacity(0.16),
@@ -181,12 +294,18 @@ struct ColorWheelPicker: View {
                                 .shadow(color: color.opacity(0.6), radius: isSelected ? 8 : 0)
                                 .scaleEffect(isSelected ? 1.1 : 1.0)
                                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-                                .contentShape(Circle().inset(by: -4))
+                                .contentShape(Circle())
                                 .onTapGesture {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        selectedColor = color
+                                    savedWheelColor = color
+                                    if colorMode == .color {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            selectedColor = color
+                                        }
+                                        onColorChange?(color)
+                                        onMode?(ColorMode.color.deviceId, color, false)
+                                    } else {
+                                        colorMode = .color
                                     }
-                                    onColorChange?(color)
                                     HapticManager.shared.lightImpact()
                                 }
                                 .accessibilityLabel("Preset color #\(hex)")
@@ -201,11 +320,11 @@ struct ColorWheelPicker: View {
                                         .font(.system(size: 16))
                                         .foregroundColor(LuminaTheme.neonRed)
                                         .background(Circle().fill(LuminaTheme.deepNavy))
-                                        .contentShape(Circle().inset(by: -10))
+                                        .frame(width: 44, height: 44, alignment: .topTrailing)
+                                        .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.pressable)
                                 .accessibilityLabel("Remove preset color #\(hex)")
-                                .offset(x: 5, y: -5)
                                 .transition(.scale.combined(with: .opacity))
                             }
                         }
@@ -254,6 +373,7 @@ struct ColorWheelPicker: View {
         let saturation = max(0.08, Double(hsba.saturation))
         let color = Color(hue: hue, saturation: saturation, brightness: Double(hsba.brightness))
         selectedColor = color
+        savedWheelColor = color
         onColorChange?(color)
         HapticManager.shared.selection()
     }

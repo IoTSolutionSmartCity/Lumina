@@ -1,0 +1,40 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Dashboard/MainDashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lumina",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "No device connected",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Scenes",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 114
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -8,6 +8,8 @@ final class IslandCenter {
     var notice: IslandNotice?
     var pulseColor = Color.white
     var pulseToken = 0
+    var route: IslandRoute?
+    var routeToken = 0
 
     private var dismissTask: Task<Void, Never>?
     private var hadLink = false
@@ -22,10 +24,34 @@ final class IslandCenter {
             hadLink = true
             show(.connected, sticky: false)
         case .disconnected, .error:
-            guard hadLink else { return }
+            guard hadLink else {
+                clearTransient()
+                return
+            }
             hadLink = false
             show(.disconnected, sticky: false, seconds: 3.2)
         }
+    }
+
+    func noteDiscovered(_ count: Int) {
+        guard count > 0 else { return }
+        switch notice {
+        case .connecting, .connected, .disconnected:
+            return
+        default:
+            show(.discovered(count), sticky: true)
+        }
+    }
+
+    func open() {
+        guard let notice else { return }
+        switch notice {
+        case .discovered, .searching:
+            route = .discover
+        case .connecting, .connected, .disconnected:
+            route = .device
+        }
+        routeToken += 1
     }
 
     func pulse(_ color: Color) {
@@ -43,6 +69,21 @@ final class IslandCenter {
             self.notice = nil
         }
     }
+
+    private func clearTransient() {
+        switch notice {
+        case .searching, .connecting, .discovered:
+            dismissTask?.cancel()
+            notice = nil
+        default:
+            break
+        }
+    }
+}
+
+enum IslandRoute: Equatable {
+    case device
+    case discover
 }
 
 enum IslandNotice: Equatable {
@@ -50,43 +91,17 @@ enum IslandNotice: Equatable {
     case connecting
     case connected
     case disconnected
+    case discovered(Int)
 
     var title: String { headline }
 
     var headline: String {
         switch self {
-        case .searching: return "Searching"
-        case .connecting: return "Connecting"
-        case .connected: return "Lamp connected"
-        case .disconnected: return "Lamp disconnected"
-        }
-    }
-
-    var isProminent: Bool {
-        self == .connected || self == .disconnected
-    }
-
-    var width: CGFloat {
-        switch self {
-        case .searching, .connecting: return 196
-        case .connected: return 280
-        case .disconnected: return 330
-        }
-    }
-
-    var height: CGFloat {
-        switch self {
-        case .searching, .connecting: return 37
-        case .connected: return 88
-        case .disconnected: return 112
-        }
-    }
-
-    var fill: Color {
-        switch self {
-        case .disconnected: return Color(red: 0.45, green: 0.05, blue: 0.08)
-        case .connected: return Color(red: 0.02, green: 0.22, blue: 0.12)
-        default: return .black
+        case .searching: return "搜尋中"
+        case .connecting: return "連線中"
+        case .connected: return "已連結"
+        case .disconnected: return "已中斷"
+        case .discovered: return "發現新設備"
         }
     }
 
@@ -96,6 +111,17 @@ enum IslandNotice: Equatable {
         case .connecting: return "lamp.desk"
         case .connected: return "lamp.desk.fill"
         case .disconnected: return "lamp.desk.slash"
+        case .discovered: return "lamp.desk.fill"
+        }
+    }
+
+    var badge: String {
+        switch self {
+        case .searching: return "magnifyingglass"
+        case .connecting: return "link"
+        case .connected: return "checkmark"
+        case .disconnected: return "xmark"
+        case .discovered: return "plus"
         }
     }
 
@@ -104,11 +130,14 @@ enum IslandNotice: Equatable {
         case .searching, .connecting: return LuminaTheme.neonOrange
         case .connected: return LuminaTheme.neonGreen
         case .disconnected: return LuminaTheme.neonRed
+        case .discovered: return LuminaTheme.neonCyan
         }
     }
 }
 
 struct LuminaIsland: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(AppSession.self) private var session
     @State private var center = IslandCenter.shared
     @State private var bluetooth = BluetoothManager.shared
     @State private var ringOpacity: Double = 0
@@ -116,12 +145,19 @@ struct LuminaIsland: View {
 
     var body: some View {
         let link = bluetooth.connectionState
+        let found = bluetooth.discoveredDevices.count
 
         ZStack(alignment: .top) {
             if let notice = center.notice {
-                noticeLabel(notice)
-                    .frame(width: notice.width, height: notice.height)
-                    .transition(.opacity)
+                Button {
+                    guard session.isOnboarded, session.isAuthenticated else { return }
+                    HapticManager.shared.lightImpact()
+                    center.open()
+                } label: {
+                    capsule(notice)
+                }
+                .buttonStyle(.plain)
+                .transition(.scale(scale: 0.5, anchor: .center).combined(with: .opacity))
             }
 
             Capsule()
@@ -130,16 +166,20 @@ struct LuminaIsland: View {
                 .opacity(ringOpacity)
                 .allowsHitTesting(false)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, 11)
+        .frame(maxWidth: .infinity, alignment: .top)
         .ignoresSafeArea(edges: .top)
-        .allowsHitTesting(false)
-        .animation(.spring(response: 0.42, dampingFraction: 0.82), value: center.notice)
+        .animation(capsuleAnimation, value: center.notice)
         .onAppear {
             center.note(link)
+            if found > 0 { center.noteDiscovered(found) }
         }
         .onChange(of: link) { _, state in
             center.note(state)
+            if found > 0 { center.noteDiscovered(found) }
+        }
+        .onChange(of: found) { _, count in
+            center.noteDiscovered(count)
         }
         .onChange(of: center.pulseToken) { _, token in
             guard token > 0 else { return }
@@ -154,26 +194,32 @@ struct LuminaIsland: View {
                 }
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(center.notice?.title ?? "Lamp status")
     }
 
-    private func noticeLabel(_ notice: IslandNotice) -> some View {
-        HStack(spacing: 10) {
+    private var capsuleAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : .spring(duration: 0.42, bounce: 0.18)
+    }
+
+    private func capsule(_ notice: IslandNotice) -> some View {
+        HStack(spacing: 0) {
             Image(systemName: notice.symbol)
-                .font(.system(size: notice.isProminent ? 26 : 15, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(notice.tint)
-            Text(notice.headline)
-                .font(.system(size: notice.isProminent ? 20 : 15, weight: .semibold))
-                .foregroundStyle(.white)
+                .frame(width: 44, height: 37)
+
+            Color.clear
+                .frame(width: 118, height: 37)
+
+            Image(systemName: notice.badge)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(notice.tint)
+                .frame(width: 44, height: 37)
         }
-        .padding(.horizontal, 18)
-        .padding(.bottom, notice.isProminent ? 16 : 0)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: notice.isProminent ? .bottom : .center)
-        .background(notice.fill, in: Capsule())
-        .overlay {
-            Capsule().stroke(notice.tint, lineWidth: notice.isProminent ? 3 : 0)
-        }
-        .shadow(color: notice.tint.opacity(notice.isProminent ? 0.55 : 0), radius: 16, y: 6)
+        .frame(height: 37)
+        .fixedSize(horizontal: true, vertical: false)
+        .background(.black, in: Capsule())
+        .contentShape(Capsule())
+        .accessibilityLabel(notice.headline)
+        .accessibilityHint("Opens the lamp screen")
     }
 }

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/ConnectionBadge.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Connected, serial number %@",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disconnected, serial number %@",
+        "location": {
+          "startingColumn": 88,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disconnected",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 14
+        }
+      }
+    ]
+  },
+  "version": 1
+}

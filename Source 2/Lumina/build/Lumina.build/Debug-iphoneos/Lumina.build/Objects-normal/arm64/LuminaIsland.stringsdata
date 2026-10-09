@@ -1,0 +1,16 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/DesignSystem/Components/LuminaIsland.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Opens the lamp screen",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 223
+        }
+      }
+    ]
+  },
+  "version": 1
+}

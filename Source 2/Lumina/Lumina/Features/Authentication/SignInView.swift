@@ -3,7 +3,7 @@ import AuthenticationServices
 
 struct SignInView: View {
     @Binding var isAuthenticated: Bool
-    @State private var isLoading = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var hasAppeared = false
@@ -16,24 +16,25 @@ struct SignInView: View {
                 Spacer()
 
                 logoSection
-                    .scaleEffect(hasAppeared ? 1 : 0.85)
-                    .opacity(hasAppeared ? 1 : 0)
+                    .scaleEffect(reduceMotion || hasAppeared ? 1 : 0.85)
+                    .opacity(reduceMotion || hasAppeared ? 1 : 0)
 
                 Spacer()
 
                 signInOptionsSection
-                    .opacity(hasAppeared ? 1 : 0)
-                    .offset(y: hasAppeared ? 0 : 16)
+                    .opacity(reduceMotion || hasAppeared ? 1 : 0)
+                    .offset(y: reduceMotion || hasAppeared ? 0 : 16)
 
                 Spacer()
 
                 skipSection
-                    .opacity(hasAppeared ? 1 : 0)
+                    .opacity(reduceMotion || hasAppeared ? 1 : 0)
             }
             .padding(.horizontal, LuminaTheme.Spacing.xl)
         }
         .preferredColorScheme(.dark)
         .onAppear {
+            guard !reduceMotion else { return }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
                 hasAppeared = true
             }
@@ -57,7 +58,7 @@ struct SignInView: View {
 
             Text("Smart Lamp Companion")
                 .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
     }
 
@@ -75,33 +76,6 @@ struct SignInView: View {
                 RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.lg)
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
-
-            Button {
-                signInWithGoogle()
-            } label: {
-                HStack(spacing: LuminaTheme.Spacing.sm) {
-                    GoogleLogo()
-                    Text("Sign in with Google")
-                        .font(LuminaTheme.Typography.headline)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(Color.white.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.lg))
-                .overlay(
-                    RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.lg)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                )
-            }
-            .buttonStyle(.pressable)
-            .disabled(isLoading)
-
-            if isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .padding(.top, LuminaTheme.Spacing.sm)
-            }
         }
     }
 
@@ -111,7 +85,7 @@ struct SignInView: View {
         } label: {
             Text("Skip for now")
                 .font(LuminaTheme.Typography.subheadline)
-                .foregroundColor(.white.opacity(0.4))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
         .padding(.bottom, LuminaTheme.Spacing.xl)
     }
@@ -131,16 +105,6 @@ struct SignInView: View {
         }
     }
 
-    private func signInWithGoogle() {
-        isLoading = true
-        // Google Sign-In requires additional setup with GoogleService-Info.plist
-        // For now, complete auth to allow app usage
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isLoading = false
-            completeSignIn()
-        }
-    }
-
     private func completeSignIn() {
         UserDefaults.standard.set(true, forKey: "isAuthenticated")
         isAuthenticated = true
@@ -157,19 +121,5 @@ struct SignInView: View {
         errorMessage = message
         showError = true
         HapticManager.shared.error()
-    }
-}
-
-struct GoogleLogo: View {
-    var body: some View {
-        HStack(spacing: 8) {
-            ZStack {
-                Circle().fill(Color(hex: "4285F4")).frame(width: 22, height: 22)
-                Circle().fill(Color(hex: "EA4335")).frame(width: 22, height: 22).offset(x: -6)
-                Circle().fill(Color(hex: "FBBC05")).frame(width: 22, height: 22).offset(x: 6)
-                Circle().fill(Color(hex: "34A853")).frame(width: 22, height: 22)
-            }
-            .frame(width: 22, height: 22)
-        }
     }
 }

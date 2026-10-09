@@ -8,6 +8,7 @@ struct ProfileView: View {
     @State private var originalEmail: String = ""
     @State private var showingSaveConfirmation = false
     @State private var validationMessage: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isGlowing = false
 
     var body: some View {
@@ -43,9 +44,9 @@ struct ProfileView: View {
                 Circle()
                     .stroke(LuminaTheme.primaryGradient, lineWidth: 2)
                     .frame(width: 108, height: 108)
-                    .opacity(isGlowing ? 1 : 0.6)
-                    .scaleEffect(isGlowing ? 1.04 : 1.0)
-                    .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: isGlowing)
+                    .opacity(reduceMotion ? 1 : (isGlowing ? 1 : 0.6))
+                    .scaleEffect(reduceMotion ? 1 : (isGlowing ? 1.04 : 1.0))
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 2).repeatForever(autoreverses: true), value: isGlowing)
 
                 Circle()
                     .fill(LuminaTheme.primaryGradient)
@@ -53,7 +54,7 @@ struct ProfileView: View {
                     .shadow(color: LuminaTheme.neonPurple.opacity(0.45), radius: 20)
 
                 Text(userInitials)
-                    .font(.system(size: 34, weight: .bold))
+                    .font(LuminaTheme.Typography.display)
                     .foregroundColor(.white)
                     .contentTransition(.opacity)
             }
@@ -66,13 +67,16 @@ struct ProfileView: View {
 
                 Text(email.isEmpty ? "Anonymous account" : email)
                     .font(LuminaTheme.Typography.subheadline)
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, LuminaTheme.Spacing.xl)
         .glassCard(cornerRadius: LuminaTheme.CornerRadius.xxl)
-        .onAppear { isGlowing = true }
+        .onAppear {
+            guard !reduceMotion else { return }
+            isGlowing = true
+        }
     }
 
     private var profileFields: some View {
@@ -111,7 +115,7 @@ struct ProfileView: View {
                     .foregroundColor(.white)
                 Text(email.isEmpty ? "You can still control your lamp. Add an email later if you want account sync." : "Your saved profile will appear in Settings.")
                     .font(LuminaTheme.Typography.caption)
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundColor(LuminaTheme.textSecondary)
             }
 
             Spacer()
@@ -152,7 +156,7 @@ struct ProfileView: View {
     private func fieldLabel(_ title: String) -> some View {
         Text(title)
             .font(LuminaTheme.Typography.captionBold)
-            .foregroundColor(.white.opacity(0.65))
+            .foregroundColor(LuminaTheme.textSecondary)
     }
 
     private func loadProfile() {

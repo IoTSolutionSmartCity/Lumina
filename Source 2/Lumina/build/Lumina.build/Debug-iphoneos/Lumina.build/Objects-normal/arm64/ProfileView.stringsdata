@@ -1,0 +1,88 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Settings/ProfileView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Profile",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Profile Saved",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your profile has been updated successfully.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lumina User",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "your@email.com",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Using anonymous mode",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "Profile ready",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "You can still control your lamp. Add an email later if you want account sync.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your saved profile will appear in Settings.",
+        "location": {
+          "startingColumn": 120,
+          "startingLine": 112
+        }
+      }
+    ]
+  },
+  "version": 1
+}

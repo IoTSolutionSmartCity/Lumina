@@ -15,6 +15,7 @@ struct LuminaTheme {
     static let darkCard = Color(hex: "16213E")
     static let glassBackground = Color.white.opacity(0.08)
     static let glassBorder = Color.white.opacity(0.15)
+    static let textSecondary = Color.white.opacity(0.7)
 
     // MARK: - Typography
     // Mapped to system text styles (rather than fixed point sizes) so all text scales with Dynamic Type.

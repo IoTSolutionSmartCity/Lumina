@@ -1,0 +1,328 @@
+{
+  "source": "/Users/Arthur Wong/Documents/Lumina/Source 2/Lumina/Lumina/Features/Settings/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign out of Lumina?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "You can sign in again or continue anonymously later.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "No saved lamps",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add your Lumina ESP32-S3 lamp to control it from this phone.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected now",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Saved",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add New Device",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Devices",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Account",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Onboard LED follows color",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 190
+        }
+      },
+      {
+        "comment": "",
+        "key": "Debug",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "When this is on, the LED on the ESP32-S3 board shows the color from the lamp controls. Turn it off to restore the red, orange, and green status light.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "1.0.0",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "Help & Support",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "Help & Support",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "App",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 228
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lumina Smart Lamp",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 236
+        }
+      },
+      {
+        "comment": "",
+        "key": "Made with ❤️",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manufacturer",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Model",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "Serial Number",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 334
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pairing Code",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 340
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bluetooth",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 346
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 354
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not connected",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 354
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Info",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "Scan and connect",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Wi-Fi",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 394
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connection",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "Green means this phone is linked to the lamp over Bluetooth right now. Tap Scan and connect, then change the Wi-Fi name and password.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 405
+        }
+      },
+      {
+        "comment": "",
+        "key": "Forget Device",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 417
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 432
+        }
+      }
+    ]
+  },
+  "version": 1
+}

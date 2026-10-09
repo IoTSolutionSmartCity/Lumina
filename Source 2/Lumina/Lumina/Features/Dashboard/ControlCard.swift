@@ -4,6 +4,8 @@ struct ControlCard: View {
     @Binding var brightness: Double
     @Binding var selectedColor: Color
     @Binding var isOn: Bool
+    var isBreathing: Binding<Bool> = .constant(false)
+    var onMode: ((UInt8, Color, Bool) -> Void)?
 
     var body: some View {
         GlassCard {
@@ -56,7 +58,7 @@ struct ControlCard: View {
                         .contentTransition(.opacity)
                     Text(isOn ? "Tap to turn off" : "Tap to wake your lamp")
                         .font(LuminaTheme.Typography.caption)
-                        .foregroundColor(.white.opacity(0.55))
+                        .foregroundColor(LuminaTheme.textSecondary)
                 }
 
                 Spacer()
@@ -100,7 +102,7 @@ struct ControlCard: View {
 
     private var colorSection: some View {
         VStack(alignment: .leading, spacing: LuminaTheme.Spacing.sm) {
-            ColorWheelPicker(selectedColor: $selectedColor)
+            ColorWheelPicker(selectedColor: $selectedColor, isBreathing: isBreathing, onMode: onMode)
         }
     }
 }

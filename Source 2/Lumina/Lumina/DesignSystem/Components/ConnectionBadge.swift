@@ -15,11 +15,11 @@ struct ConnectionBadge: View {
                 .font(LuminaTheme.Typography.captionBold)
 
             Text("•")
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(LuminaTheme.textSecondary)
 
             Text(serialNumber)
                 .font(LuminaTheme.Typography.caption)
-                .foregroundColor(.white.opacity(0.6))
+                .foregroundColor(LuminaTheme.textSecondary)
         }
         .foregroundColor(.white)
         .padding(.horizontal, LuminaTheme.Spacing.md)
