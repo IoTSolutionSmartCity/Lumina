@@ -2,7 +2,7 @@
   Lumina ESP32-S3 HomeKit RGB Lamp
   - Bluetooth first: the Lumina app finds the lamp, sends color, then Wi-Fi
   - Saved Wi-Fi lets Apple Home / a HomePod mini pair over HomeKit
-  - RGB PWM on GPIO 4, 5, and 6. There is no white channel.
+  - RGB PWM on GPIO 10 red, GPIO 11 green, GPIO 9 blue. There is no white channel.
 */
 
 #include <Arduino.h>
@@ -13,20 +13,21 @@
 #include "LuminaBle.h"
 #include "LuminaModes.h"
 #include "LuminaWifiScan.h"
+#include "LuminaLink.h"
 #include "BoardLed.h"
 
 // ---- External RGB lamp PWM pins ----
-// GPIO 4 red, GPIO 5 green, GPIO 6 blue. GPIO 7 is not used.
+// GPIO 9 blue, GPIO 10 red, GPIO 11 green.
 #ifndef PWM_R_PIN
-  #define PWM_R_PIN 4
+  #define PWM_R_PIN 10
 #endif
 
 #ifndef PWM_G_PIN
-  #define PWM_G_PIN 5
+  #define PWM_G_PIN 11
 #endif
 
 #ifndef PWM_B_PIN
-  #define PWM_B_PIN 6
+  #define PWM_B_PIN 9
 #endif
 
 #define PWM_FREQ_HZ 5000
@@ -227,7 +228,9 @@ void forgetLeftoverWifi() {
 
 void setup() {
   Serial.begin(115200);
+  LuminaLink::startLog();
   delay(1000);
+  LuminaLink::line("Lumina lamp started. Open this monitor at 115200.");
 
   BoardLed::wifiConfigured = wifiCameFromApp();
   if (!BoardLed::wifiConfigured) {
@@ -238,6 +241,8 @@ void setup() {
   LuminaBle::begin();
 
   homeSpan.setPairingCode("46637726");
+  homeSpan.setWifiBegin(LuminaLink::beginWifi);
+  homeSpan.setConnectionCallback(LuminaLink::onConnection);
   homeSpan.setLogLevel(1);
 
   homeSpan.begin(Category::Lighting, "Lumina ESP32S3 Lamp");
@@ -259,11 +264,16 @@ void setup() {
 
 void handleBleCommand(const LuminaProtocol::Command &command) {
   if (command.kind == LuminaProtocol::Command::wifi) {
-    Serial.print("Saving Wi-Fi for HomeKit: ");
-    Serial.println(command.ssid);
     markWifiFromApp();
     homeSpan.setWifiCredentials(command.ssid, command.password);
+    // Stay on this Bluetooth link. A restart here is what left the phone
+    // spinning on "joining" with nobody left to send the address.
+    if (WiFi.status() == WL_CONNECTED) {
+      WiFi.disconnect(false, false);
+    }
+    LuminaBle::statusDue() = true;
     BoardLed::celebrateWifi();
+    LuminaLink::joining(command.ssid, command.password);
   } else if (command.kind == LuminaProtocol::Command::scan) {
     publishWifiScan();
   } else if (command.kind == LuminaProtocol::Command::mode || command.kind == LuminaProtocol::Command::flow) {
@@ -276,7 +286,14 @@ void handleBleCommand(const LuminaProtocol::Command &command) {
 }
 
 void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    BoardLed::wifiUp = true;
+  }
   BoardLed::update();
+  if (LuminaBle::takeStatusRequest()) {
+    LuminaLink::poke();
+  }
+  LuminaLink::tick();
   LuminaModes::tick(applyRgb);
   LuminaProtocol::Command command;
   if (LuminaBle::takeEvent(command)) {

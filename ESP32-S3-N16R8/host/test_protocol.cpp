@@ -71,6 +71,15 @@ int main() {
   const uint8_t badMode[] = {0x03, 9};
   assert(LuminaProtocol::parse(badMode, sizeof(badMode)).kind == LuminaProtocol::Command::invalid);
 
+  const uint8_t ip[] = {192, 168, 1, 9};
+  const size_t statusLength = LuminaProtocol::encodeWifiStatus(packet, sizeof(packet), 1, -55, ip, "Home");
+  assert(statusLength == 12);
+  assert(packet[0] == 0x12);
+  assert(packet[1] == 1);
+  assert(static_cast<int8_t>(packet[2]) == -55);
+  assert(packet[3] == 192 && packet[6] == 9);
+  assert(packet[7] == 4);
+
   std::cout << "lumina protocol ok\n";
   return 0;
 }

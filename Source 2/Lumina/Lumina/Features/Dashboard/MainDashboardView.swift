@@ -2,9 +2,7 @@ import SwiftUI
 
 struct MainDashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var viewModel = DashboardViewModel()
-    @State private var breathLow = false
 
     var body: some View {
         ZStack {
@@ -16,25 +14,22 @@ struct MainDashboardView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: LuminaTheme.Spacing.lg) {
                         LampPreview3D(
-                            color: viewModel.isBreathing ? LampEffects.breathColor : viewModel.selectedColor,
-                            brightness: viewModel.isBreathing
-                                ? (breathLow ? LampEffects.breathMinimum : LampEffects.breathMaximum)
-                                : viewModel.brightness,
+                            color: viewModel.lampPreviewColor,
+                            brightness: viewModel.isBreathing ? LampEffects.breathMaximum : viewModel.brightness,
                             isOn: viewModel.isOn
                         )
-                        .animation(viewModel.isBreathing && breathLow ? .easeInOut(duration: 2.4).repeatForever(autoreverses: true) : nil, value: breathLow)
-                        .onChange(of: viewModel.isBreathing) { _, on in
-                            breathLow = on && !reduceMotion
-                        }
-                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
 
                         ControlCard(
                             brightness: $viewModel.brightness,
                             selectedColor: $viewModel.selectedColor,
                             isOn: $viewModel.isOn,
                             isBreathing: $viewModel.isBreathing,
+                            isFlowing: $viewModel.isFlowing,
                             onMode: { id, color, breath in
                                 viewModel.runSavedMode(id: id, color: color, breath: breath)
+                            },
+                            onEffectChange: {
+                                viewModel.publishActiveEffect()
                             }
                         )
 

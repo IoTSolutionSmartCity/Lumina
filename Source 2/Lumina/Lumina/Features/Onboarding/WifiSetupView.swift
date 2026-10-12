@@ -8,6 +8,7 @@ struct WifiSetupView: View {
     @State private var isSaving = false
     @State private var isScanningNetworks = true
     @State private var saved = false
+    @State private var timedOut = false
     @State private var errorMessage: String?
     @State private var showPassword = false
     @State private var prompt: Prompt?
@@ -45,7 +46,7 @@ struct WifiSetupView: View {
         .navigationTitle("Lamp Wi-Fi")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if !saved {
+            if !saved || !bluetooth.lampWifi.hasAddress {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Not now") { onFinished() }
                 }
@@ -54,6 +55,20 @@ struct WifiSetupView: View {
         .preferredColorScheme(.dark)
         .task {
             await refresh()
+        }
+        .task(id: saved) {
+            timedOut = false
+            guard saved else { return }
+            let deadline = Date().addingTimeInterval(30)
+            while !Task.isCancelled {
+                if !timedOut && Date() >= deadline && bluetooth.lampWifi.state == .joining {
+                    timedOut = true
+                }
+                if bluetooth.connectionState != .connected && bluetooth.connectionState != .connecting {
+                    await bluetooth.scanAndConnect(timeout: 6)
+                }
+                try? await Task.sleep(for: .seconds(2))
+            }
         }
         .sheet(item: $prompt) { prompt in
             passwordSheet(prompt)
@@ -188,31 +203,97 @@ struct WifiSetupView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: LuminaTheme.Spacing.sm) {
-                Text("Lamp is joining Wi-Fi")
+                Text(statusTitle)
                     .font(LuminaTheme.Typography.title)
                     .foregroundColor(.white)
-                Text("Open the Home app, add an accessory, and enter this code.")
+                    .multilineTextAlignment(.center)
+                Text(statusDetail)
                     .font(LuminaTheme.Typography.subheadline)
                     .foregroundColor(LuminaTheme.textSecondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, LuminaTheme.Spacing.lg)
 
-            Text(BluetoothManager.homeKitSetupCode)
-                .font(.system(.largeTitle, design: .monospaced, weight: .semibold))
-                .foregroundColor(.white)
-                .padding(.horizontal, LuminaTheme.Spacing.lg)
-                .padding(.vertical, LuminaTheme.Spacing.md)
+            if bluetooth.lampWifi.hasAddress {
+                VStack(alignment: .leading, spacing: LuminaTheme.Spacing.sm) {
+                    statusRow("Network", bluetooth.lampWifi.ssid)
+                    statusRow("IP address", bluetooth.lampWifi.ipAddress)
+                    statusRow("Signal", "\(bluetooth.lampWifi.rssi) dBm")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(LuminaTheme.Spacing.lg)
                 .glassCard(cornerRadius: LuminaTheme.CornerRadius.lg)
-                .accessibilityLabel("HomeKit code \(BluetoothManager.homeKitSetupCode)")
+                .padding(.horizontal, LuminaTheme.Spacing.lg)
 
-            NeonButton("Continue", icon: "arrow.right") {
-                onFinished()
+                Text(BluetoothManager.homeKitSetupCode)
+                    .font(.system(.largeTitle, design: .monospaced, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, LuminaTheme.Spacing.lg)
+                    .padding(.vertical, LuminaTheme.Spacing.md)
+                    .glassCard(cornerRadius: LuminaTheme.CornerRadius.lg)
+                    .accessibilityLabel("HomeKit code \(BluetoothManager.homeKitSetupCode)")
+            } else if shownState != .failed {
+                ProgressView()
+                    .tint(.white)
             }
-            .padding(.horizontal, LuminaTheme.Spacing.lg)
+
+            if !bluetooth.lampWifi.hasAddress {
+                Button("Choose another network") {
+                    timedOut = false
+                    saved = false
+                }
+                .font(LuminaTheme.Typography.headline)
+                .foregroundColor(LuminaTheme.neonCyan)
+                .frame(minHeight: 44)
+            }
+
+            if bluetooth.lampWifi.hasAddress {
+                NeonButton("Continue", icon: "arrow.right") {
+                    onFinished()
+                }
+                .padding(.horizontal, LuminaTheme.Spacing.lg)
+            }
 
             Spacer()
         }
+    }
+
+    private var shownState: LampWifiStatus.State {
+        if timedOut && bluetooth.lampWifi.state == .joining {
+            return .failed
+        }
+        return bluetooth.lampWifi.state
+    }
+
+    private var statusTitle: String {
+        switch shownState {
+        case .connected: return "Lamp is on Wi-Fi"
+        case .failed: return "Lamp could not join Wi-Fi"
+        case .joining: return "Lamp is joining Wi-Fi"
+        }
+    }
+
+    private var statusDetail: String {
+        switch shownState {
+        case .connected:
+            return "Open the Home app, add an accessory, and enter this code."
+        case .failed:
+            return "Check the password and choose the 2.4 GHz network, then send it again."
+        case .joining:
+            return "Waiting for the lamp to get an address. This phone stays connected while it joins."
+        }
+    }
+
+    private func statusRow(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundColor(LuminaTheme.textSecondary)
+            Spacer()
+            Text(value.isEmpty ? "—" : value)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.trailing)
+        }
+        .font(LuminaTheme.Typography.headline)
     }
 
     private func passwordSheet(_ prompt: Prompt) -> some View {

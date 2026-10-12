@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
+#include "../../ESP32-S3-N16R8/esp32s3_homekit_builtin_led/LuminaLink.h"
+
 // HomeSpan owns the Wi-Fi lifecycle (STA connect, reconnect backoff, BSSID scan,
 // and the captive-portal setup AP). Don't stop/mode-flip the radio around it --
 // doing so races HomeSpan's own WiFi.mode() calls and makes STA/AP netif start
@@ -11,11 +13,7 @@
 namespace LuminaWifi {
 
 inline void onConnection(int status) {
-  if (status) {
-    Serial.printf("Wi-Fi connected. IP: %s\n", WiFi.localIP().toString().c_str());
-  } else {
-    Serial.println("Wi-Fi disconnected.");
-  }
+  LuminaLink::onConnection(status);
 }
 
 }  // namespace LuminaWifi

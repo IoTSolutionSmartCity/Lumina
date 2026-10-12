@@ -56,20 +56,41 @@ inline bool phoneConnected() {
   return phoneConnectedFlag();
 }
 
+inline volatile bool &statusDue() {
+  static volatile bool due = false;
+  return due;
+}
+
+inline bool takeStatusRequest() {
+  if (!statusDue()) {
+    return false;
+  }
+  statusDue() = false;
+  return true;
+}
+
 inline void setPhoneConnected(bool connected) {
   phoneConnectedFlag() = connected;
+}
+
+inline bool &holdAdvertising() {
+  static bool hold = false;
+  return hold;
 }
 
 class ServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer *server) override {
     (void)server;
     setPhoneConnected(true);
+    statusDue() = true;
   }
 
   void onDisconnect(BLEServer *server) override {
     (void)server;
     setPhoneConnected(false);
-    BLEDevice::startAdvertising();
+    if (!holdAdvertising()) {
+      BLEDevice::startAdvertising();
+    }
   }
 };
 
@@ -88,6 +109,29 @@ inline BLECharacteristic *&scanCharacteristic() {
   return characteristic;
 }
 
+inline BLEServer *&server() {
+  static BLEServer *value = nullptr;
+  return value;
+}
+
+inline void pauseForJoin() {
+  holdAdvertising() = true;
+  if (BLEDevice::getAdvertising() != nullptr) {
+    BLEDevice::getAdvertising()->stop();
+  }
+  if (server() != nullptr && phoneConnected()) {
+    server()->disconnect(server()->getConnId());
+    setPhoneConnected(false);
+  }
+}
+
+inline void resumeAfterJoin() {
+  holdAdvertising() = false;
+  if (BLEDevice::getAdvertising() != nullptr) {
+    BLEDevice::getAdvertising()->start();
+  }
+}
+
 inline void publishScan(const uint8_t *data, size_t length) {
   BLECharacteristic *characteristic = scanCharacteristic();
   if (characteristic == nullptr || data == nullptr || length == 0) {
@@ -104,9 +148,10 @@ inline void begin() {
   static ServerCallbacks serverCallbacks;
   static CommandCallbacks commandCallbacks;
 
-  BLEServer *server = BLEDevice::createServer();
-  server->setCallbacks(&serverCallbacks);
-  BLEService *service = server->createService(serviceUUID);
+  BLEServer *created = BLEDevice::createServer();
+  server() = created;
+  created->setCallbacks(&serverCallbacks);
+  BLEService *service = created->createService(serviceUUID);
   BLECharacteristic *command = service->createCharacteristic(
     commandUUID,
     BLECharacteristic::PROPERTY_WRITE

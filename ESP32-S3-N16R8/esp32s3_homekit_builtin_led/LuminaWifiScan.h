@@ -7,7 +7,6 @@
 
 // The iPhone cannot scan Wi-Fi for an app, so the lamp scans and reports what it can join.
 inline void publishWifiScan() {
-  WiFi.mode(WIFI_STA);
   const int found = WiFi.scanNetworks(false, true);
 
   struct Hit {

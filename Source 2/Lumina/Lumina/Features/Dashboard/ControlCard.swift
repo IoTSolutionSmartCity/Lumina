@@ -5,7 +5,9 @@ struct ControlCard: View {
     @Binding var selectedColor: Color
     @Binding var isOn: Bool
     var isBreathing: Binding<Bool> = .constant(false)
+    var isFlowing: Binding<Bool> = .constant(false)
     var onMode: ((UInt8, Color, Bool) -> Void)?
+    var onEffectChange: (() -> Void)?
 
     var body: some View {
         GlassCard {
@@ -102,7 +104,13 @@ struct ControlCard: View {
 
     private var colorSection: some View {
         VStack(alignment: .leading, spacing: LuminaTheme.Spacing.sm) {
-            ColorWheelPicker(selectedColor: $selectedColor, isBreathing: isBreathing, onMode: onMode)
+            ColorWheelPicker(
+                selectedColor: $selectedColor,
+                isBreathing: isBreathing,
+                isFlowing: isFlowing,
+                onMode: onMode,
+                onEffectChange: onEffectChange
+            )
         }
     }
 }

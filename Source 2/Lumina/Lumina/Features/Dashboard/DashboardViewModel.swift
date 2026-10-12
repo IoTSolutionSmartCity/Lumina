@@ -20,6 +20,14 @@ final class DashboardViewModel {
     private var skipLiveColor = false
     var isBreathing = false
     var isFlowing = false
+    var effectTick = 0
+
+    var lampPreviewColor: Color {
+        _ = effectTick
+        if isBreathing { return LampEffects.breathColor }
+        if isFlowing { return LampEffects.flowColors.first ?? selectedColor }
+        return selectedColor
+    }
 
     var connectionState: ConnectionState { bluetooth.connectionState }
 
@@ -69,6 +77,20 @@ final class DashboardViewModel {
             deviceRepository.addDevice(device)
         }
         deviceRepository.selectDevice(device)
+    }
+
+    func publishActiveEffect() {
+        effectTick += 1
+        pendingUpdateTask?.cancel()
+        pendingUpdateTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard let self, !Task.isCancelled else { return }
+            if self.isBreathing && self.isOn {
+                self.bluetooth.sendColor(LampEffects.breathCommand())
+            } else if self.isFlowing && self.isOn {
+                self.bluetooth.sendColor(LampEffects.flowCommand())
+            }
+        }
     }
 
     func scheduleColorPulse() {

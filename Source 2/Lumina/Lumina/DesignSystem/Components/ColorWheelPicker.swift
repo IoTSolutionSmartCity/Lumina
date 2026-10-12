@@ -4,16 +4,22 @@ struct ColorWheelPicker: View {
     @Binding var selectedColor: Color
     var onColorChange: ((Color) -> Void)?
     var isBreathing: Binding<Bool> = .constant(false)
+    var isFlowing: Binding<Bool> = .constant(false)
     var onMode: ((UInt8, Color, Bool) -> Void)?
+    var onEffectChange: (() -> Void)?
 
     @State private var isDragging = false
     @State private var presetHexColors: [String] = ColorWheelPicker.defaultPresetHexColors
     @State private var isEditingPresets = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var colorMode: ColorMode = .color
     @State private var savedWheelColor = LuminaTheme.neonPurple
-    @State private var breathDim = false
     @State private var ignoreModeChange = true
+    @State private var breathColor = LampEffects.breathColor
+    @State private var breathMinimum = LampEffects.breathMinimum
+    @State private var breathMaximum = LampEffects.breathMaximum
+    @State private var flowColors = LampEffects.flowColors
+    @State private var flowBrightness = LampEffects.flowBrightness
+    @State private var flowIndex = 0
 
     private static let presetStorageKey = "colorWheelPresetHexColors"
     private static let defaultPresetHexColors = ["7C3AED", "06B6D4", "EC4899", "10B981", "F59E0B", "FFFFFF"]
@@ -54,36 +60,21 @@ struct ColorWheelPicker: View {
         VStack(spacing: LuminaTheme.Spacing.md) {
             header
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: LuminaTheme.Spacing.sm) {
-                    ForEach(ColorMode.allCases, id: \.self) { mode in
-                        Button {
-                            colorMode = mode
-                        } label: {
-                            Text(mode.rawValue)
-                                .font(LuminaTheme.Typography.captionBold)
-                                .foregroundColor(colorMode == mode ? .white : LuminaTheme.textSecondary)
-                                .padding(.horizontal, 14)
-                                .frame(minHeight: 44)
-                                .background(
-                                    Capsule().fill(colorMode == mode ? LuminaTheme.neonPurple : Color.white.opacity(0.08))
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(colorMode == mode ? .isSelected : [])
-                    }
-                }
-            }
-            .accessibilityLabel("Color mode")
+            modePicker
 
-            if colorMode == .color {
+            if colorMode != .color {
+                effectCard
+            }
+            if colorMode == .breath || colorMode == .flow {
+                effectControls
+            }
+            if colorMode == .color || colorMode == .breath || colorMode == .flow {
                 colorWheel
-            } else {
-                whiteModePreview
             }
 
             presetColors
         }
+        .animation(nil, value: colorMode)
         .onAppear {
             loadPresets()
             if let match = ColorMode.allCases.first(where: { $0.white?.hexString == selectedColor.hexString }) {
@@ -98,7 +89,7 @@ struct ColorWheelPicker: View {
                 savedWheelColor = selectedColor
             }
             isBreathing.wrappedValue = mode == .breath
-            breathDim = mode == .breath && !reduceMotion
+            isFlowing.wrappedValue = mode == .flow
             let color = mode == .breath || mode == .flow ? selectedColor : (mode.white ?? savedWheelColor)
             if mode != .breath && mode != .flow, color.hexString != selectedColor.hexString {
                 selectedColor = color
@@ -110,8 +101,28 @@ struct ColorWheelPicker: View {
             onMode?(mode.deviceId, color, mode == .breath)
             HapticManager.shared.selection()
         }
+        .onChange(of: breathMinimum) { _, value in
+            let limit = breathMaximum - 0.05
+            guard value <= limit else {
+                breathMinimum = max(0, limit)
+                return
+            }
+            commitBreath()
+        }
+        .onChange(of: breathMaximum) { _, value in
+            let limit = breathMinimum + 0.05
+            guard value >= limit else {
+                breathMaximum = min(1, limit)
+                return
+            }
+            commitBreath()
+        }
+        .onChange(of: flowBrightness) { _, _ in
+            commitFlow()
+        }
         .onDisappear {
             isBreathing.wrappedValue = false
+            isFlowing.wrappedValue = false
         }
     }
 
@@ -146,10 +157,10 @@ struct ColorWheelPicker: View {
                         .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
 
                     Circle()
-                        .fill(selectedColor)
+                        .fill(activeColor)
                         .frame(width: isDragging ? 34 : 28, height: isDragging ? 34 : 28)
                         .overlay(Circle().stroke(Color.white, lineWidth: 3))
-                        .shadow(color: selectedColor.opacity(0.8), radius: 12)
+                        .shadow(color: activeColor.opacity(0.8), radius: 12)
                         .position(indicatorPosition(in: geometry.size, wheelDiameter: size))
                         .scaleEffect(isDragging ? 1.2 : 1.0)
                         .animation(.spring(response: 0.2), value: isDragging)
@@ -167,23 +178,20 @@ struct ColorWheelPicker: View {
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
                             isDragging = true
-                            let color = colorAt(point: value.location, in: geometry.size, wheelDiameter: size)
-                            selectedColor = color
-                            savedWheelColor = color
-                            onColorChange?(color)
+                            assignWheel(colorAt(point: value.location, in: geometry.size, wheelDiameter: size))
                         }
                         .onEnded { value in
-                            selectedColor = colorAt(point: value.location, in: geometry.size, wheelDiameter: size)
-                            savedWheelColor = selectedColor
-                            onColorChange?(selectedColor)
-                            onMode?(ColorMode.color.deviceId, selectedColor, false)
+                            assignWheel(colorAt(point: value.location, in: geometry.size, wheelDiameter: size))
+                            if colorMode == .color {
+                                onMode?(ColorMode.color.deviceId, selectedColor, false)
+                            }
                             isDragging = false
                             HapticManager.shared.selection()
                         }
                 )
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Color wheel")
-                .accessibilityValue("Hex \(selectedColor.hexString)")
+                .accessibilityValue("Hex \(activeColor.hexString)")
                 .accessibilityHint("Swipe up or down to adjust hue")
                 .accessibilityAddTraits(.allowsDirectInteraction)
                 .accessibilityAdjustableAction { direction in
@@ -197,34 +205,111 @@ struct ColorWheelPicker: View {
         .aspectRatio(1, contentMode: .fit)
     }
 
-    private var whiteModePreview: some View {
+    private var modePicker: some View {
+        VStack(spacing: LuminaTheme.Spacing.sm) {
+            HStack(spacing: LuminaTheme.Spacing.sm) {
+                ForEach([ColorMode.color, .warm, .soft, .cool], id: \.self) { mode in
+                    modeChip(mode)
+                }
+            }
+            HStack(spacing: LuminaTheme.Spacing.sm) {
+                modeChip(.breath)
+                modeChip(.flow)
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Color mode")
+    }
+
+    private func modeChip(_ mode: ColorMode) -> some View {
+        Button {
+            colorMode = mode
+        } label: {
+            Text(mode.rawValue)
+                .font(LuminaTheme.Typography.captionBold)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .foregroundColor(colorMode == mode ? .white : LuminaTheme.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(
+                    Capsule().fill(colorMode == mode ? LuminaTheme.neonPurple : Color.white.opacity(0.08))
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(colorMode == mode ? .isSelected : [])
+    }
+
+    private var effectCard: some View {
         RoundedRectangle(cornerRadius: LuminaTheme.CornerRadius.xl)
             .fill(previewFill)
             .frame(maxWidth: .infinity)
             .frame(height: 88)
-            .opacity(colorMode == .breath && breathDim ? 0.35 : 1)
-            .animation(
-                colorMode == .breath && breathDim ? .easeInOut(duration: 2).repeatForever(autoreverses: true) : nil,
-                value: breathDim
-            )
-            .overlay {
-                if colorMode == .flow {
-                    HStack(spacing: 8) {
-                        ForEach(Array(LampEffects.flowHexes.enumerated()), id: \.offset) { _, hex in
-                            Circle()
-                                .fill(Color(hex: hex))
-                                .frame(width: 22, height: 22)
-                                .overlay(Circle().stroke(Color.black.opacity(0.25), lineWidth: 1))
-                        }
+            .overlay { effectCardLabel }
+            .accessibilityElement(children: colorMode == .flow ? .contain : .ignore)
+            .accessibilityLabel(modeTitle)
+    }
+
+    @ViewBuilder
+    private var effectCardLabel: some View {
+        if colorMode == .flow {
+            HStack(spacing: 8) {
+                ForEach(Array(flowColors.enumerated()), id: \.offset) { index, color in
+                    Button {
+                        flowIndex = min(index, max(flowColors.count - 1, 0))
+                        HapticManager.shared.selection()
+                    } label: {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 28, height: 28)
+                            .overlay(
+                                Circle().stroke(
+                                    index == flowIndex ? Color.white : Color.black.opacity(0.25),
+                                    lineWidth: index == flowIndex ? 3 : 1
+                                )
+                            )
+                            .frame(width: 44, height: 44)
                     }
-                } else {
-                    Text(modeTitle)
-                        .font(LuminaTheme.Typography.headline)
-                        .foregroundColor(.black.opacity(0.72))
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Flow color \(index + 1)")
+                    .accessibilityAddTraits(index == flowIndex ? .isSelected : [])
                 }
             }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(modeTitle)
+        } else {
+            Text(modeTitle)
+                .font(LuminaTheme.Typography.headline)
+                .foregroundColor(.black.opacity(0.72))
+                .allowsHitTesting(false)
+        }
+    }
+
+    @ViewBuilder
+    private var effectControls: some View {
+        if colorMode == .breath {
+            GlassSlider(value: $breathMinimum, icon: "moon.fill", label: "Dim", tint: breathColor)
+            GlassSlider(value: $breathMaximum, icon: "sun.max.fill", label: "Bright", tint: breathColor)
+        } else if colorMode == .flow {
+            HStack {
+                Button("Add color") {
+                    guard flowColors.count < 5 else { return }
+                    flowColors.append(flowColors.last ?? Color(hex: "FFFFFF"))
+                    flowIndex = flowColors.count - 1
+                    commitFlow()
+                }
+                .disabled(flowColors.count >= 5)
+                Spacer()
+                Button("Remove") {
+                    guard flowColors.count > 2, flowColors.indices.contains(flowIndex) else { return }
+                    flowColors.remove(at: flowIndex)
+                    flowIndex = min(flowIndex, flowColors.count - 1)
+                    commitFlow()
+                }
+                .disabled(flowColors.count <= 2)
+            }
+            .font(LuminaTheme.Typography.captionBold)
+            .foregroundColor(LuminaTheme.neonCyan)
+            .frame(minHeight: 44)
+            GlassSlider(value: $flowBrightness, icon: "sun.max.fill", label: "Brightness", tint: activeColor)
+        }
     }
 
     private var modeTitle: String {
@@ -240,10 +325,15 @@ struct ColorWheelPicker: View {
 
     private var previewFill: Color {
         switch colorMode {
-        case .breath: return LampEffects.breathColor
-        case .flow: return LampEffects.flowColors.first ?? selectedColor
+        case .breath: return breathColor
+        case .flow: return flowSwatch
         default: return selectedColor
         }
+    }
+
+    private var flowSwatch: Color {
+        guard flowColors.indices.contains(flowIndex) else { return flowColors.first ?? selectedColor }
+        return flowColors[flowIndex]
     }
 
     private var header: some View {
@@ -252,7 +342,7 @@ struct ColorWheelPicker: View {
                 Text("Color")
                     .font(LuminaTheme.Typography.captionBold)
                     .foregroundColor(.white.opacity(0.75))
-                Text("#\(selectedColor.hexString)")
+                Text("#\(activeColor.hexString)")
                     .font(LuminaTheme.Typography.caption)
                     .foregroundColor(LuminaTheme.textSecondary)
             }
@@ -260,10 +350,10 @@ struct ColorWheelPicker: View {
             Spacer()
 
             Circle()
-                .fill(selectedColor)
+                .fill(activeColor)
                 .frame(width: 28, height: 28)
                 .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 2))
-                .shadow(color: selectedColor.opacity(0.8), radius: 8)
+                .shadow(color: activeColor.opacity(0.8), radius: 8)
 
             Button {
                 toggleCurrentPreset()
@@ -316,7 +406,7 @@ struct ColorWheelPicker: View {
                 HStack(spacing: LuminaTheme.Spacing.sm) {
                     ForEach(presetHexColors, id: \.self) { hex in
                         let color = Color(hex: hex)
-                        let isSelected = selectedColor.hexString == hex
+                        let isSelected = activeColor.hexString == hex
                         ZStack(alignment: .topTrailing) {
                             Circle()
                                 .fill(color)
@@ -332,14 +422,17 @@ struct ColorWheelPicker: View {
                                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
                                 .contentShape(Circle())
                                 .onTapGesture {
-                                    savedWheelColor = color
-                                    if colorMode == .color {
+                                    if colorMode == .breath || colorMode == .flow {
+                                        assignWheel(color)
+                                    } else if colorMode == .color {
+                                        savedWheelColor = color
                                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                             selectedColor = color
                                         }
                                         onColorChange?(color)
                                         onMode?(ColorMode.color.deviceId, color, false)
                                     } else {
+                                        savedWheelColor = color
                                         colorMode = .color
                                     }
                                     HapticManager.shared.lightImpact()
@@ -373,13 +466,47 @@ struct ColorWheelPicker: View {
     }
 
     private var containsCurrentColor: Bool {
-        presetHexColors.contains(selectedColor.hexString)
+        presetHexColors.contains(activeColor.hexString)
+    }
+
+    private var activeColor: Color {
+        switch colorMode {
+        case .breath: return breathColor
+        case .flow: return flowSwatch
+        default: return selectedColor
+        }
+    }
+
+    private func assignWheel(_ color: Color) {
+        switch colorMode {
+        case .breath:
+            breathColor = color
+            commitBreath()
+        case .flow:
+            guard flowColors.indices.contains(flowIndex) else { return }
+            flowColors[flowIndex] = color
+            commitFlow()
+        default:
+            selectedColor = color
+            savedWheelColor = color
+            onColorChange?(color)
+        }
+    }
+
+    private func commitBreath() {
+        LampEffects.saveBreath(color: breathColor, minimum: breathMinimum, maximum: breathMaximum)
+        onEffectChange?()
+    }
+
+    private func commitFlow() {
+        LampEffects.saveFlow(colors: flowColors, brightness: flowBrightness)
+        onEffectChange?()
     }
 
     private func indicatorPosition(in size: CGSize, wheelDiameter: CGFloat) -> CGPoint {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
         let radius = wheelDiameter / 2
-        let hsba = selectedColor.hsbaComponents
+        let hsba = activeColor.hsbaComponents
         let hue = Double(hsba.hue)
         let saturation = max(0.08, Double(hsba.saturation))
         let angle = Angle(degrees: hue * 360 - 90)
@@ -402,15 +529,13 @@ struct ColorWheelPicker: View {
     }
 
     private func adjustHue(by delta: Double) {
-        let hsba = selectedColor.hsbaComponents
+        let hsba = activeColor.hsbaComponents
         var hue = Double(hsba.hue) + delta
         hue = hue.truncatingRemainder(dividingBy: 1.0)
         if hue < 0 { hue += 1 }
         let saturation = max(0.08, Double(hsba.saturation))
         let color = Color(hue: hue, saturation: saturation, brightness: Double(hsba.brightness))
-        selectedColor = color
-        savedWheelColor = color
-        onColorChange?(color)
+        assignWheel(color)
         HapticManager.shared.selection()
     }
 
@@ -426,7 +551,7 @@ struct ColorWheelPicker: View {
     }
 
     private func toggleCurrentPreset() {
-        let hex = selectedColor.hexString
+        let hex = activeColor.hexString
         if !presetHexColors.contains(hex) {
             presetHexColors.append(hex)
             savePresets()

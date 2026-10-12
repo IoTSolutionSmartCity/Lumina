@@ -87,6 +87,42 @@ enum LampLinkError: LocalizedError {
     }
 }
 
+struct LampWifiStatus: Equatable {
+    enum State: Equatable {
+        case joining
+        case connected
+        case failed
+    }
+
+    var state: State
+    var rssi: Int
+    var ipAddress: String
+    var ssid: String
+
+    var hasAddress: Bool {
+        state == .connected && ipAddress != "0.0.0.0"
+    }
+
+    static func parse(_ data: Data) -> LampWifiStatus? {
+        guard data.count >= 8, data[0] == 0x12 else { return nil }
+        let nameLength = Int(data[7])
+        guard data.count >= 8 + nameLength else { return nil }
+        let state: State
+        switch data[1] {
+        case 1: state = .connected
+        case 2: state = .failed
+        default: state = .joining
+        }
+        let ssid = String(data: data.subdata(in: 8..<(8 + nameLength)), encoding: .utf8) ?? ""
+        return LampWifiStatus(
+            state: state,
+            rssi: Int(Int8(bitPattern: data[2])),
+            ipAddress: "\(data[3]).\(data[4]).\(data[5]).\(data[6])",
+            ssid: ssid
+        )
+    }
+}
+
 struct LampWifiNetwork: Identifiable, Equatable {
     let ssid: String
     let rssi: Int
@@ -146,6 +182,7 @@ final class BluetoothManager: NSObject {
     var connectedDevice: DiscoveredPeripheral?
     var problemMessage: String?
     var nearbyNetworks: [LampWifiNetwork] = []
+    var lampWifi = LampWifiStatus(state: .joining, rssi: 0, ipAddress: "0.0.0.0", ssid: "")
 
     private var centralManager: CBCentralManager!
     private var connectedPeripheral: CBPeripheral?
@@ -305,6 +342,7 @@ final class BluetoothManager: NSObject {
         guard let data = LampCommand.setWifi(ssid: ssid, password: password).data else {
             throw LampLinkError.invalidCommand
         }
+        lampWifi = LampWifiStatus(state: .joining, rssi: 0, ipAddress: "0.0.0.0", ssid: ssid)
         try await write(data)
     }
 
@@ -504,7 +542,12 @@ extension BluetoothManager: CBPeripheralDelegate {
     nonisolated func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         let value = characteristic.value
         Task { @MainActor in
-            guard error == nil, let value, let network = LampWifiNetwork.parse(value) else { return }
+            guard error == nil, let value else { return }
+            if let status = LampWifiStatus.parse(value) {
+                lampWifi = status
+                return
+            }
+            guard let network = LampWifiNetwork.parse(value) else { return }
             noteScan(network)
         }
     }

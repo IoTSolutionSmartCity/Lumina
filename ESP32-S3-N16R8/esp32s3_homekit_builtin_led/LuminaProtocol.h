@@ -15,6 +15,8 @@
 // Scan:   0x11 from the app. The lamp replies on the scan characteristic:
 //         0x11, flags, rssi, ssidLen, ssid...
 //         flags bit 0 = password required, bit 7 = last network in this scan.
+// Status: 0x12, state, rssi, IPv4 (4 bytes), ssidLen, ssid...
+//         state 0 = joining, 1 = connected, 2 = failed.
 namespace LuminaProtocol {
 
 static constexpr uint8_t colorCommand = 0x02;
@@ -22,6 +24,7 @@ static constexpr uint8_t modeCommand = 0x03;
 static constexpr uint8_t flowCommand = 0x05;
 static constexpr uint8_t wifiCommand = 0x10;
 static constexpr uint8_t scanCommand = 0x11;
+static constexpr uint8_t wifiStatusCommand = 0x12;
 static constexpr size_t maxSsid = 32;
 static constexpr size_t maxPassword = 64;
 static constexpr size_t maxFlowColors = 5;
@@ -148,6 +151,29 @@ inline size_t encodeScanResult(
     memcpy(out + 4, ssid, ssidLength);
   }
   return 4 + ssidLength;
+}
+
+inline size_t encodeWifiStatus(
+  uint8_t *out,
+  size_t capacity,
+  uint8_t state,
+  int8_t rssi,
+  const uint8_t ip[4],
+  const char *ssid
+) {
+  const size_t ssidLength = ssid == nullptr ? 0 : strnlen(ssid, maxSsid);
+  if (out == nullptr || ip == nullptr || capacity < 8 + ssidLength) {
+    return 0;
+  }
+  out[0] = wifiStatusCommand;
+  out[1] = state;
+  out[2] = static_cast<uint8_t>(rssi);
+  memcpy(out + 3, ip, 4);
+  out[7] = static_cast<uint8_t>(ssidLength);
+  if (ssidLength > 0) {
+    memcpy(out + 8, ssid, ssidLength);
+  }
+  return 8 + ssidLength;
 }
 
 }  // namespace LuminaProtocol
